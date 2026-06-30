@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>词海 · 3D 海缸预览</title>
+<style>
+  :root {
+    --bg: #f3efe7;
+    --ink: #2a2620;
+    --ink-soft: #5b574f;
+    --line: #d9d2c4;
+    --paper: #fbf8f2;
+    --accent: #6b8e7f;
+    --accent-warm: #c98b6b;
+    font-family: "Noto Serif SC", "Songti SC", Georgia, "PingFang SC", serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); }
+  .app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; gap: 16px; padding: 16px; }
+  @media (max-width: 880px) { .app { grid-template-columns: 1fr; height: auto; } }
+  .panel {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px; overflow-y: auto;
+  }
+  .panel h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: 4px; font-weight: 500; }
+  .panel .sub { font-size: 11px; color: var(--ink-soft); letter-spacing: 2px; margin-bottom: 16px; }
+  .panel h2 {
+    margin: 18px 0 8px; font-size: 12px; letter-spacing: 3px;
+    color: var(--ink-soft); font-weight: 500; border-bottom: 1px solid var(--line); padding-bottom: 6px;
+  }
+  .hint { font-size: 12px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 10px; }
+  .control-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12px; }
+  .control-row label { flex: 0 0 70px; color: var(--ink-soft); letter-spacing: 1px; }
+  .control-row input[type="range"] { flex: 1; }
+  .control-row input[type="checkbox"] { transform: scale(1.1); }
+  .upload-row { margin-bottom: 8px; }
+  .upload-row label { display: block; font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; letter-spacing: 1px; }
+  .upload-row .row { display: flex; gap: 6px; align-items: center; }
+  .upload-row .btn {
+    padding: 5px 10px; background: var(--paper); border: 1px solid var(--line);
+    border-radius: 6px; cursor: pointer; font-size: 12px;
+  }
+  .upload-row .status { font-size: 11px; color: var(--ink-soft); }
+  .upload-row .clear { background: none; border: 0; color: var(--accent-warm); cursor: pointer; font-size: 11px; }
+  .scene-wrap {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+    position: relative; min-height: 460px;
+  }
+  #scene { width: 100%; height: 100%; display: block; }
+  .scene-overlay {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(20,20,20,0.55); color: #f5f0e2;
+    padding: 6px 12px; border-radius: 16px; font-size: 11px; letter-spacing: 1px;
+    pointer-events: none;
+  }
+  .palette { display: flex; gap: 6px; flex-wrap: wrap; }
+  .palette-swatch {
+    width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--line); cursor: pointer;
+  }
+  .palette-swatch.active { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(20,20,20,0.85); color: #f5f0e2;
+    padding: 8px 16px; border-radius: 18px; font-size: 12px; letter-spacing: 1px;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel">
+    <h1>词海 · 3D</h1>
+    <div class="sub">AQUARIUM PREVIEW</div>
+    <div class="hint">
+      <strong>操作</strong>：左键拖动旋转视角；右键拖动平移；滚轮缩放。
+    </div>
+
+    <h2>氛围</h2>
+    <div class="control-row">
+      <label>自动旋转</label>
+      <input type="checkbox" id="auto-rotate" checked>
+    </div>
+    <div class="control-row">
+      <label>水色</label>
+      <div class="palette" id="water-palette"></div>
+    </div>
+    <div class="control-row">
+      <label>沙色</label>
+      <div class="palette" id="sand-palette"></div>
+    </div>
+    <div class="control-row">
+      <label>玻璃</label>
+      <input type="range" id="glass-opacity" min="0" max="100" value="15">
+    </div>
+    <div class="control-row">
+      <label>光强</label>
+      <input type="range" id="light-intensity" min="20" max="150" value="80">
+    </div>
+
+    <h2>替换为 GLB 模型</h2>
+    <div class="hint">
+      在 <a href="https://fab.com" target="_blank">fab.com</a> 搜 "stylized aquarium" / "low poly coral" / "clownfish" 等，下载 .glb 后上传到这里替换。
+    </div>
+    <div id="upload-rows"></div>
+
+    <h2>添加物种</h2>
+    <div class="hint">点击下方按钮往缸里加占位生物，看模型的位置和密度。</div>
+    <div class="control-row" style="flex-wrap:wrap; gap:6px;">
+      <button class="btn upload-row" data-add="smallFish">+ 小鱼</button>
+      <button class="btn upload-row" data-add="moonFish">+ 月亮鱼</button>
+      <button class="btn upload-row" data-add="clownfish">+ 小丑鱼</button>
+      <button class="btn upload-row" data-add="bigFish">+ 大鱼</button>
+      <button class="btn upload-row" data-add="rock">+ 岩石</button>
+      <button class="btn upload-row" data-add="coral">+ 珊瑚</button>
+      <button class="btn upload-row" data-add="anemone">+ 海葵</button>
+      <button class="btn upload-row" data-add="seaweed">+ 海草</button>
+    </div>
+    <div class="control-row">
+      <button class="btn upload-row" id="reset-scene" style="background:#f3d6d6;">清空场景</button>
+    </div>
+  </aside>
+
+  <div class="scene-wrap">
+    <canvas id="scene"></canvas>
+    <div class="scene-overlay">左键拖动 · 滚轮缩放</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+"use strict";
+
+const WATER_PRESETS = [
+  { name: "tealLight",   color: 0xb8dcd8, label: "浅青" },
+  { name: "tealDeep",    color: 0x6ba6a3, label: "深青" },
+  { name: "blueShallow", color: 0xa5cce0, label: "浅蓝" },
+  { name: "blueDeep",    color: 0x3a78a5, label: "深蓝" },
+  { name: "twilight",    color: 0x4a5d8a, label: "暮色" }
+];
+const SAND_PRESETS = [
+  { name: "pale",   color: 0xe8d3a3, label: "米沙" },
+  { name: "warm",   color: 0xc8a874, label: "暖沙" },
+  { name: "shell",  color: 0xddcdb0, label: "贝壳" },
+  { name: "black",  color: 0x3a342c, label: "黑沙" }
+];
+
+const state = {
+  waterColor: 0xb8dcd8,
+  sandColor: 0xc8a874,
+  glassOpacity: 0.15,
+  lightIntensity: 0.8,
+  autoRotate: true,
+  creatures: [],
+  decor: []
+};
+
+let scene, camera, renderer, controls;
+let aquariumMesh, sandMesh, waterSurfaceMesh, glassMat, sandMat;
+let directionalLight, ambientLight;
+const customModels = {}; // type -> THREE.Object3D (loaded GLB)
+const loader = new THREE.GLTFLoader();
+
+const BOX_W = 8, BOX_H = 5, BOX_D = 5;
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+function init() {
+  const cv = document.getElementById("scene");
+  const wrap = cv.parentElement;
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf3efe7);
+
+  camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
+  camera.position.set(8, 5, 11);
+
+  renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.minDistance = 6;
+  controls.maxDistance = 20;
+  controls.minPolarAngle = Math.PI / 7;
+  controls.maxPolarAngle = Math.PI / 2.1;
+  controls.target.set(0, 0.5, 0);
+  controls.autoRotate = state.autoRotate;
+  controls.autoRotateSpeed = 0.6;
+
+  // Lights
+  ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  scene.add(ambientLight);
+  directionalLight = new THREE.DirectionalLight(0xfff0d0, state.lightIntensity);
+  directionalLight.position.set(3, 9, 4);
+  directionalLight.castShadow = true;
+  directionalLight.shadow.mapSize.set(1024, 1024);
+  const sCam = directionalLight.shadow.camera;
+  sCam.near = 1; sCam.far = 30; sCam.left = -8; sCam.right = 8; sCam.top = 8; sCam.bottom = -8;
+  scene.add(directionalLight);
+  // Soft fill from front-bottom
+  const fill = new THREE.DirectionalLight(0xb8d8e8, 0.25);
+  fill.position.set(-3, 2, 5);
+  scene.add(fill);
+
+  buildAquarium();
+  seedDefaultDecor();
+
+  window.addEventListener("resize", onResize);
+  animate(performance.now());
+}
+
+function buildAquarium() {
+  if (aquariumMesh) scene.remove(aquariumMesh);
+  if (sandMesh) scene.remove(sandMesh);
+  if (waterSurfaceMesh) scene.remove(waterSurfaceMesh);
+
+  // Glass aquarium
+  glassMat = new THREE.MeshPhysicalMaterial({
+    color: state.waterColor,
+    transparent: true,
+    opacity: state.glassOpacity,
+    roughness: 0.05,
+    metalness: 0,
+    transmission: 0.95,
+    thickness: 0.6,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+  aquariumMesh = new THREE.Mesh(new THREE.BoxGeometry(BOX_W, BOX_H, BOX_D), glassMat);
+  aquariumMesh.position.y = BOX_H / 2 - 2;
+  scene.add(aquariumMesh);
+
+  // Edges (subtle dark frame)
+  const edges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(BOX_W, BOX_H, BOX_D)),
+    new THREE.LineBasicMaterial({ color: 0x2c4a4d, transparent: true, opacity: 0.45 })
+  );
+  edges.position.copy(aquariumMesh.position);
+  scene.add(edges);
+  aquariumMesh.userData.edges = edges;
+
+  // Sand bottom (thicker slab inside the aquarium)
+  sandMat = new THREE.MeshStandardMaterial({
+    color: state.sandColor, roughness: 0.95, metalness: 0, flatShading: true
+  });
+  const sandGeom = new THREE.BoxGeometry(BOX_W - 0.1, 0.5, BOX_D - 0.1, 20, 1, 12);
+  // Bump sand top with simple noise
+  const pos = sandGeom.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    if (pos.getY(i) > 0) {
+      const x = pos.getX(i), z = pos.getZ(i);
+      pos.setY(i, 0.25 + Math.sin(x * 0.8 + z * 0.6) * 0.06 + Math.cos(x * 0.5 - z * 0.9) * 0.05);
+    }
+  }
+  sandGeom.computeVertexNormals();
+  sandMesh = new THREE.Mesh(sandGeom, sandMat);
+  sandMesh.position.y = -BOX_H / 2 - 2 + 0.25;
+  sandMesh.receiveShadow = true;
+  scene.add(sandMesh);
+
+  // Water surface — gentle bright plane just below top
+  const surfMat = new THREE.MeshStandardMaterial({
+    color: 0xeaf5f4, transparent: true, opacity: 0.18, roughness: 0.1
+  });
+  waterSurfaceMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(BOX_W - 0.1, BOX_D - 0.1),
+    surfMat
+  );
+  waterSurfaceMesh.rotation.x = -Math.PI / 2;
+  waterSurfaceMesh.position.y = BOX_H - 2 - 0.1;
+  scene.add(waterSurfaceMesh);
+}
+
+function updateAquariumColor() {
+  if (glassMat) glassMat.color.setHex(state.waterColor);
+  if (glassMat) glassMat.opacity = state.glassOpacity;
+  if (sandMat) sandMat.color.setHex(state.sandColor);
+  if (directionalLight) directionalLight.intensity = state.lightIntensity;
+}
+
+function seedDefaultDecor() {
+  // A few rocks
+  for (let i = 0; i < 4; i++) addCreature("rock");
+  // Some coral / anemone clumps
+  addCreature("coral");
+  addCreature("anemone");
+  addCreature("anemone");
+  addCreature("seaweed"); addCreature("seaweed");
+  // A few fish
+  for (let i = 0; i < 4; i++) addCreature("smallFish");
+  addCreature("clownfish");
+  addCreature("moonFish");
+  addCreature("bigFish");
+}
+
+/* ---------- Procedural species ---------- */
+
+function lowPolyMaterial(color) {
+  return new THREE.MeshStandardMaterial({
+    color, roughness: 0.55, metalness: 0, flatShading: true
+  });
+}
+
+function makeRock() {
+  const g = new THREE.Group();
+  const ico = new THREE.IcosahedronGeometry(0.5 + Math.random() * 0.3, 0);
+  const rock = new THREE.Mesh(ico, lowPolyMaterial(0x35353a));
+  rock.scale.set(1, 0.7 + Math.random() * 0.3, 1);
+  rock.rotation.set(Math.random(), Math.random(), Math.random());
+  rock.castShadow = true; rock.receiveShadow = true;
+  g.add(rock);
+  return g;
+}
+
+function makeCoral() {
+  const g = new THREE.Group();
+  const palette = [0xe07a8a, 0xd97aa0, 0xea9bb0, 0xc35878];
+  const color = palette[Math.floor(Math.random() * palette.length)];
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.12, 0.18, 0.7, 6),
+    lowPolyMaterial(color)
+  );
+  trunk.position.y = 0.35;
+  trunk.castShadow = true;
+  g.add(trunk);
+  for (let i = 0; i < 4; i++) {
+    const branch = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.07, 0.1, 0.35, 5),
+      lowPolyMaterial(color)
+    );
+    const ang = (i / 4) * Math.PI * 2;
+    branch.position.set(Math.cos(ang) * 0.18, 0.55, Math.sin(ang) * 0.18);
+    branch.rotation.set(0.5, ang, 0);
+    branch.castShadow = true;
+    g.add(branch);
+    // tip
+    const tip = new THREE.Mesh(
+      new THREE.SphereGeometry(0.09, 6, 4),
+      lowPolyMaterial(0xfac0d0)
+    );
+    tip.position.set(Math.cos(ang) * 0.32, 0.78, Math.sin(ang) * 0.32);
+    tip.castShadow = true;
+    g.add(tip);
+  }
+  return g;
+}
+
+function makeAnemone() {
+  const g = new THREE.Group();
+  const palette = [0xd97aa0, 0xea9bb0, 0xc54f8a, 0xe6a8c0];
+  const color = palette[Math.floor(Math.random() * palette.length)];
+  const base = new THREE.Mesh(
+    new THREE.SphereGeometry(0.3, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2),
+    lowPolyMaterial(color)
+  );
+  base.position.y = 0;
+  base.castShadow = true;
+  g.add(base);
+  for (let i = 0; i < 14; i++) {
+    const tent = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.05, 0.4, 4),
+      lowPolyMaterial(color)
+    );
+    const ang = (i / 14) * Math.PI * 2;
+    tent.position.set(Math.cos(ang) * 0.22, 0.22, Math.sin(ang) * 0.22);
+    tent.rotation.set(Math.sin(ang) * 0.5, 0, Math.cos(ang) * 0.5);
+    g.add(tent);
+  }
+  return g;
+}
+
+function makeSeaweed() {
+  const g = new THREE.Group();
+  const segs = 5;
+  for (let i = 0; i < segs; i++) {
+    const seg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.05, 0.25, 4),
+      lowPolyMaterial(0x4d8a4d)
+    );
+    seg.position.y = i * 0.22 + 0.12;
+    seg.rotation.z = Math.sin(i * 0.6) * 0.15;
+    g.add(seg);
+  }
+  return g;
+}
+
+function makeFishGeneric(opts) {
+  const { color, tailColor, size = 0.3, hasStripe = false, stripeColor = 0xffffff } = opts;
+  const g = new THREE.Group();
+  // Body (elongated sphere)
+  const body = new THREE.Mesh(
+    new THREE.SphereGeometry(size, 7, 5),
+    lowPolyMaterial(color)
+  );
+  body.scale.set(1.6, 0.9, 0.7);
+  body.castShadow = true;
+  g.add(body);
+  // Tail
+  const tail = new THREE.Mesh(
+    new THREE.ConeGeometry(size * 0.6, size * 0.8, 4),
+    lowPolyMaterial(tailColor)
+  );
+  tail.position.set(-size * 1.6, 0, 0);
+  tail.rotation.z = -Math.PI / 2;
+  g.add(tail);
+  g.userData.tail = tail;
+  // Top fin
+  const fin = new THREE.Mesh(
+    new THREE.ConeGeometry(size * 0.35, size * 0.5, 3),
+    lowPolyMaterial(tailColor)
+  );
+  fin.position.set(-size * 0.1, size * 0.6, 0);
+  fin.rotation.x = Math.PI / 8;
+  g.add(fin);
+  // Eyes
+  for (const dz of [-1, 1]) {
+    const eye = new THREE.Mesh(
+      new THREE.SphereGeometry(size * 0.1, 6, 4),
+      new THREE.MeshBasicMaterial({ color: 0x1a1410 })
+    );
+    eye.position.set(size * 0.9, size * 0.15, dz * size * 0.45);
+    g.add(eye);
+  }
+  // Stripe (for clownfish)
+  if (hasStripe) {
+    for (const x of [-size * 0.4, size * 0.2]) {
+      const stripe = new THREE.Mesh(
+        new THREE.RingGeometry(size * 0.6, size * 0.7, 16, 1),
+        new THREE.MeshBasicMaterial({ color: stripeColor, side: THREE.DoubleSide })
+      );
+      stripe.rotation.y = Math.PI / 2;
+      stripe.position.set(x, 0, 0);
+      g.add(stripe);
+    }
+  }
+  return g;
+}
+function makeSmallFish() { return makeFishGeneric({ color: 0xe9b955, tailColor: 0xa17a37, size: 0.18 }); }
+function makeMoonFish()  { return makeFishGeneric({ color: 0xe7d9b0, tailColor: 0xa99b76, size: 0.32 }); }
+function makeClownfish() { return makeFishGeneric({ color: 0xe07a3c, tailColor: 0x8e3f17, size: 0.22, hasStripe: true }); }
+function makeBigFish()   { return makeFishGeneric({ color: 0xbb6abf, tailColor: 0x7e468a, size: 0.42 }); }
+
+const FACTORIES = {
+  smallFish: makeSmallFish, moonFish: makeMoonFish, clownfish: makeClownfish, bigFish: makeBigFish,
+  rock: makeRock, coral: makeCoral, anemone: makeAnemone, seaweed: makeSeaweed
+};
+
+const FISH_TYPES = new Set(["smallFish","moonFish","clownfish","bigFish"]);
+const DECOR_TYPES = new Set(["rock","coral","anemone","seaweed"]);
+
+function randomInBox(margin) {
+  return {
+    x: (Math.random() - 0.5) * (BOX_W - margin * 2),
+    y: (Math.random() - 0.5) * (BOX_H - margin * 2),
+    z: (Math.random() - 0.5) * (BOX_D - margin * 2)
+  };
+}
+
+function addCreature(type) {
+  let mesh;
+  if (customModels[type]) {
+    mesh = customModels[type].clone(true);
+  } else {
+    const f = FACTORIES[type];
+    if (!f) return;
+    mesh = f();
+  }
+  if (FISH_TYPES.has(type)) {
+    const p = randomInBox(0.8);
+    mesh.position.set(p.x, p.y + 0.2, p.z);
+    const speed = type === "bigFish" ? 0.3 : (type === "moonFish" ? 0.5 : 0.8);
+    const dir = new THREE.Vector3((Math.random() - 0.5) * 2, 0, (Math.random() - 0.5) * 2).normalize();
+    mesh.userData.swim = {
+      type, speed,
+      vel: dir.multiplyScalar(speed * 0.6),
+      phase: Math.random() * 6
+    };
+    state.creatures.push(mesh);
+  } else {
+    // Place on sand
+    const p = randomInBox(1.0);
+    const sandY = -BOX_H / 2 - 2 + 0.5;
+    mesh.position.set(p.x, sandY, p.z * 0.6);
+    mesh.rotation.y = Math.random() * Math.PI * 2;
+    state.decor.push(mesh);
+  }
+  scene.add(mesh);
+}
+
+function clearScene() {
+  for (const m of [...state.creatures, ...state.decor]) scene.remove(m);
+  state.creatures = []; state.decor = [];
+}
+
+/* ---------- Animation ---------- */
+let last = performance.now();
+function animate(now) {
+  requestAnimationFrame(animate);
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+
+  // Move fish within box bounds
+  const innerHalfX = (BOX_W / 2) - 0.7;
+  const innerHalfY = (BOX_H / 2) - 0.7;
+  const innerHalfZ = (BOX_D / 2) - 0.7;
+  for (const f of state.creatures) {
+    const sw = f.userData.swim; if (!sw) continue;
+    // Gentle random steering
+    sw.vel.x += (Math.random() - 0.5) * 0.05 * dt * 10;
+    sw.vel.y += (Math.random() - 0.5) * 0.03 * dt * 10;
+    sw.vel.z += (Math.random() - 0.5) * 0.05 * dt * 10;
+    // Clamp to target speed
+    const cur = sw.vel.length();
+    const targ = sw.speed * 0.6;
+    sw.vel.multiplyScalar(targ / Math.max(0.001, cur));
+    // Bound check; bounce
+    const aqY = aquariumMesh.position.y;
+    if (f.position.x >  innerHalfX) sw.vel.x = -Math.abs(sw.vel.x);
+    if (f.position.x < -innerHalfX) sw.vel.x =  Math.abs(sw.vel.x);
+    if (f.position.y > aqY + innerHalfY) sw.vel.y = -Math.abs(sw.vel.y);
+    if (f.position.y < aqY - innerHalfY + 0.3) sw.vel.y =  Math.abs(sw.vel.y);
+    if (f.position.z >  innerHalfZ) sw.vel.z = -Math.abs(sw.vel.z);
+    if (f.position.z < -innerHalfZ) sw.vel.z =  Math.abs(sw.vel.z);
+    f.position.addScaledVector(sw.vel, dt);
+    // Face direction of motion
+    if (sw.vel.lengthSq() > 0.01) {
+      const lookAt = new THREE.Vector3().copy(f.position).add(sw.vel);
+      f.lookAt(lookAt);
+      f.rotateY(-Math.PI / 2); // model points +X by default
+    }
+    // Tail wag
+    if (f.userData.tail) {
+      sw.phase += dt * 3;
+      f.userData.tail.rotation.x = Math.sin(sw.phase) * 0.3;
+    }
+  }
+  // Water surface gentle ripple
+  if (waterSurfaceMesh) {
+    waterSurfaceMesh.position.y = (BOX_H / 2 - 0.1) + aquariumMesh.position.y +
+      Math.sin(now * 0.0008) * 0.02;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+function onResize() {
+  const wrap = document.querySelector(".scene-wrap");
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+
+/* ---------- UI ---------- */
+function renderPalette(containerId, presets, getter, setter) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = "";
+  for (const p of presets) {
+    const sw = document.createElement("div");
+    sw.className = "palette-swatch";
+    sw.style.background = "#" + p.color.toString(16).padStart(6, "0");
+    sw.title = p.label;
+    if (getter() === p.color) sw.classList.add("active");
+    sw.addEventListener("click", () => {
+      setter(p.color);
+      [...c.children].forEach(el => el.classList.remove("active"));
+      sw.classList.add("active");
+      updateAquariumColor();
+    });
+    c.appendChild(sw);
+  }
+}
+
+function renderUploadRows() {
+  const wrap = document.getElementById("upload-rows");
+  wrap.innerHTML = "";
+  const rows = [
+    ["smallFish", "小鱼"], ["moonFish", "月亮鱼"], ["clownfish", "小丑鱼"], ["bigFish", "大鱼"],
+    ["rock", "岩石"], ["coral", "珊瑚"], ["anemone", "海葵"], ["seaweed", "海草"]
+  ];
+  for (const [k, label] of rows) {
+    const row = document.createElement("div");
+    row.className = "upload-row";
+    const status = customModels[k] ? "✓ 已替换" : "占位";
+    row.innerHTML = `
+      <label>${label}</label>
+      <div class="row">
+        <input type="file" accept=".glb,.gltf" style="display:none" id="up-${k}">
+        <button class="btn" data-pick="${k}">选择 .glb</button>
+        <span class="status">${status}</span>
+        ${customModels[k] ? `<button class="clear" data-clear="${k}">清除</button>` : ""}
+      </div>
+    `;
+    wrap.appendChild(row);
+  }
+  wrap.querySelectorAll("button[data-pick]").forEach(btn => {
+    btn.addEventListener("click", () => document.getElementById("up-" + btn.dataset.pick).click());
+  });
+  wrap.querySelectorAll("button[data-clear]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      delete customModels[btn.dataset.clear];
+      renderUploadRows();
+      toast(btn.dataset.clear + " 已恢复为占位");
+    });
+  });
+  wrap.querySelectorAll("input[type=file]").forEach(input => {
+    input.addEventListener("change", (e) => {
+      const type = input.id.slice(3);
+      const f = e.target.files[0]; if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        loader.parse(reader.result, "", (gltf) => {
+          const obj = gltf.scene;
+          // Auto-fit: scale to reasonable size based on type
+          const box = new THREE.Box3().setFromObject(obj);
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const targetMax = FISH_TYPES.has(type) ? 0.8 : 1.2;
+          const scale = targetMax / maxDim;
+          obj.scale.setScalar(scale);
+          // Center on origin
+          const center = box.getCenter(new THREE.Vector3()).multiplyScalar(scale);
+          obj.position.sub(center);
+          obj.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+          customModels[type] = obj;
+          renderUploadRows();
+          toast(type + " 模型已加载，新加的此类型会用此模型");
+        }, (err) => {
+          toast("加载失败：" + (err.message || err));
+        });
+      };
+      reader.readAsArrayBuffer(f);
+      e.target.value = "";
+    });
+  });
+}
+
+document.getElementById("auto-rotate").addEventListener("change", (e) => {
+  controls.autoRotate = e.target.checked;
+});
+document.getElementById("glass-opacity").addEventListener("input", (e) => {
+  state.glassOpacity = e.target.value / 100;
+  updateAquariumColor();
+});
+document.getElementById("light-intensity").addEventListener("input", (e) => {
+  state.lightIntensity = e.target.value / 100;
+  updateAquariumColor();
+});
+document.querySelectorAll("button[data-add]").forEach(btn => {
+  btn.addEventListener("click", () => addCreature(btn.dataset.add));
+});
+document.getElementById("reset-scene").addEventListener("click", () => {
+  if (confirm("清空所有物种和造景？")) clearScene();
+});
+
+renderPalette("water-palette", WATER_PRESETS,
+  () => state.waterColor, (c) => state.waterColor = c);
+renderPalette("sand-palette", SAND_PRESETS,
+  () => state.sandColor, (c) => state.sandColor = c);
+renderUploadRows();
+
+init();
+</script>
+</body>
+</html>

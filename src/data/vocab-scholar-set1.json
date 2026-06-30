@@ -1,0 +1,448 @@
+[
+  {
+    "word": "efface",
+    "phonetic": "/ɪˈfeɪs/",
+    "meaning": "v. 抹除；使消失于视野",
+    "forms": "effaced; effacing; effacement (n.)",
+    "context": "academic / critical",
+    "note": "学术批判用语，比 ignore / overlook 更强，带“使其从视野中消失”的暗示。",
+    "sentences": [
+      {
+        "en": "The dominant narrative effaces the voices of those displaced by it.",
+        "zh": "主流叙事抹除了被它驱离者的声音。"
+      }
+    ]
+  },
+  {
+    "word": "conceptualization",
+    "phonetic": "/kənˌseptʃʊəlaɪˈzeɪʃn/",
+    "meaning": "n. 概念化的方式；把抽象事物组织为可被讨论的概念框架",
+    "forms": "conceptualize (v.); conceptual (adj.)",
+    "context": "academic",
+    "note": "高频学术词，常以 “X's conceptualization of Y” 形式出现。",
+    "sentences": [
+      {
+        "en": "Heidegger's conceptualization of being differs radically from Sartre's.",
+        "zh": "海德格尔对“存在”的概念化方式与萨特根本不同。"
+      }
+    ]
+  },
+  {
+    "word": "phenomenal",
+    "phonetic": "/fəˈnɒmɪnl/",
+    "meaning": "adj. (1) 现象学义：显现给意识的（对立 noumenal）；(2) 口语义：卓越的",
+    "forms": "phenomenally (adv.); phenomenon (n.)",
+    "context": "phenomenology",
+    "note": "警惕翻译误用——学术语境几乎只用义 (1)。口语义 (2) 在学术写作中应避免。",
+    "sentences": [
+      {
+        "en": "Husserl distinguishes the phenomenal from the noumenal.",
+        "zh": "胡塞尔区分了现象的与本体的。"
+      }
+    ]
+  },
+  {
+    "word": "unbridgeable",
+    "phonetic": "/ʌnˈbrɪdʒəbl/",
+    "meaning": "adj. 无法弥合的；无法跨越的",
+    "forms": "bridge (v./n.); bridgeable (adj.)",
+    "context": "academic",
+    "note": "固定搭配：unbridgeable gulf / unbridgeable gap。",
+    "sentences": [
+      {
+        "en": "There remains an unbridgeable gulf between phenomenal experience and metaphysical claims.",
+        "zh": "现象经验与形而上学主张之间始终存在难以弥合的鸿沟。"
+      }
+    ]
+  },
+  {
+    "word": "subliminal",
+    "phonetic": "/sʌbˈlɪmɪnl/",
+    "meaning": "adj. 阈下的；意识门槛之下的",
+    "forms": "subliminally (adv.); subliminality (n.)",
+    "context": "psychological / cognitive",
+    "note": "学术多用专业义（心理学/认知），不用流行义（广告的“潜移默化”）。",
+    "sentences": [
+      {
+        "en": "Subliminal cues influence judgment even when subjects cannot recall having seen them.",
+        "zh": "阈下线索即便在被试无法回忆见过它们时，也会影响判断。"
+      }
+    ]
+  },
+  {
+    "word": "totality",
+    "phonetic": "/təʊˈtæləti/",
+    "meaning": "n. 整体性；作为单一范畴被把握的全体",
+    "forms": "total (adj.); totalize (v.)",
+    "context": "philosophical",
+    "note": "哲学高频词（Hegel, Lukács, Levinas），常与 fragmentation 对立。",
+    "sentences": [
+      {
+        "en": "The novel refuses to present a totality, offering instead fragments that resist synthesis.",
+        "zh": "这部小说拒绝呈现一种整体性，转而提供抵抗综合的碎片。"
+      }
+    ]
+  },
+  {
+    "word": "finds an echo in",
+    "phonetic": "",
+    "meaning": "phr. 在……中产生结构性共振；与……相呼应",
+    "forms": "—",
+    "context": "academic phrasing",
+    "note": "学术固定表达，用于“承认共振、不强行历史承继”。比 is similar to 优雅得多。常与让步从句 “though no direct influence...” 搭配。",
+    "sentences": [
+      {
+        "en": "Levinas's notion of the face finds an echo in certain strands of Confucian ethics, though no direct influence can be traced.",
+        "zh": "列维纳斯的“面孔”概念在某些儒家伦理思路中产生回响，尽管无法追溯直接影响。"
+      },
+      {
+        "en": "P.T.'s sublime effect finds an echo in eighteenth-century British travel writing on Alpine landscapes, though no direct historical lineage can be traced.",
+        "zh": "P.T. 所引发的崇高效应在十八世纪英国关于阿尔卑斯景观的游记中产生回响，尽管无法追溯直接的历史承继。"
+      }
+    ]
+  },
+  {
+    "word": "identifies as",
+    "phonetic": "",
+    "meaning": "phr. 将……归类为……类别",
+    "forms": "identify (v.); identification (n.)",
+    "context": "academic phrasing",
+    "note": "不是 self-identifies as（自我认同），而是“把 X 归入 Y 类”。",
+    "sentences": [
+      {
+        "en": "Kant identifies the sublime as a distinct category of aesthetic judgment.",
+        "zh": "康德将崇高视为审美判断中的一个独立范畴。"
+      }
+    ]
+  },
+  {
+    "word": "epitomize",
+    "phonetic": "/ɪˈpɪtəmaɪz/",
+    "meaning": "v. 完美体现；典型化",
+    "forms": "epitomized; epitomizing; epitome (n.)",
+    "context": "academic",
+    "note": "否定形式（“does not necessarily epitomize”）常用以撤回别人误读的强版本。英式拼写 epitomise。",
+    "sentences": [
+      {
+        "en": "Beckett's late prose epitomizes the modernist drive toward minimalism.",
+        "zh": "贝克特晚期散文典型地体现了现代主义对极简的追求。"
+      }
+    ]
+  },
+  {
+    "word": "necessarily",
+    "phonetic": "/ˌnesəˈserəli/",
+    "meaning": "adv. 必然地（常用于 hedge 否定式）",
+    "forms": "necessary (adj.); necessity (n.)",
+    "context": "academic hedge",
+    "note": "“does not necessarily” 是英文学术写作最常见的 hedge 句式之一。",
+    "sentences": [
+      {
+        "en": "Wealth does not necessarily lead to happiness, though the two often correlate.",
+        "zh": "财富并不必然带来幸福，尽管两者常常相关。"
+      }
+    ]
+  },
+  {
+    "word": "exclusively",
+    "phonetic": "/ɪkˈskluːsɪvli/",
+    "meaning": "adv. 排他性地；仅仅",
+    "forms": "exclusive (adj.); exclude (v.)",
+    "context": "academic",
+    "note": "否定 exclusively 是承认某物在多大程度上还使用了其他模式。",
+    "sentences": [
+      {
+        "en": "The argument is not exclusively about gender; it also touches on class and labor.",
+        "zh": "这一论证并非仅关乎性别，也涉及阶级与劳动。"
+      }
+    ]
+  },
+  {
+    "word": "affect",
+    "phonetic": "/ˈæfekt/",
+    "meaning": "n. 情动（Deleuze / Spinoza 传统的前理性身体性强度）",
+    "forms": "affective (adj.); affectivity (n.)",
+    "context": "Deleuzian / Spinozist",
+    "note": "区别于 emotion（已命名的情感状态）。理论术语，作名词时重音在第一音节；不同于动词 affect（影响），后者重音在第二音节。",
+    "sentences": [
+      {
+        "en": "The film's pacing generates an affect of unease that cannot be reduced to its narrative content.",
+        "zh": "影片的节奏生成出一种不安的情动，无法被还原为其叙事内容。"
+      }
+    ]
+  },
+  {
+    "word": "emissary",
+    "phonetic": "/ˈemɪsəri/",
+    "meaning": "n. 使者；代表某方进入另一领域的代理者",
+    "forms": "—",
+    "context": "literary / formal",
+    "note": "比 messenger 更正式，带半神秘色彩。",
+    "sentences": [
+      {
+        "en": "The translator is, in a sense, an emissary between languages — bound by both, fully at home in neither.",
+        "zh": "译者在某种意义上是语际间的使者——受双方约束，却在任一方都不完全归属。"
+      }
+    ]
+  },
+  {
+    "word": "double",
+    "phonetic": "/ˈdʌbl/",
+    "meaning": "n. 怪诞分身；二重身（精神分析义）",
+    "forms": "doubled; doubling",
+    "context": "psychoanalytic",
+    "note": "Freud 1919 论文 Das Unheimliche 的核心结构。日常义 = 替身（替身演员）。",
+    "sentences": [
+      {
+        "en": "The double in nineteenth-century gothic fiction often returns as the protagonist's repressed self.",
+        "zh": "十九世纪哥特小说中的分身常以主人公被压抑的自我形式回归。"
+      }
+    ]
+  },
+  {
+    "word": "at least to a degree",
+    "phonetic": "",
+    "meaning": "phr. 至少在某种程度上（嵌入式 hedge）",
+    "forms": "—",
+    "context": "academic hedge",
+    "note": "嵌在句子中间使用，既不放弃断言也不绝对化。掌握不同强度的 hedge 是英文学术节奏的关键。",
+    "sentences": [
+      {
+        "en": "Translation is, at least to a degree, an act of interpretation.",
+        "zh": "翻译至少在某种程度上是一种诠释行为。"
+      },
+      {
+        "en": "This argument, at least to a degree, depends on Merleau-Ponty's concept of the corporeal schema.",
+        "zh": "这一论证至少在某种程度上依赖于梅洛-庞蒂的身体图式概念。"
+      }
+    ]
+  },
+  {
+    "word": "effectively",
+    "phonetic": "/ɪˈfektɪvli/",
+    "meaning": "adv. 实际上；事实上（评注性副词）",
+    "forms": "effective (adj.); effect (n.)",
+    "context": "academic (parenthetical)",
+    "note": "逗号嵌入是判断关键——不加逗号则是“有效地”（义 2）。表示“我在评论这个动词的效果”而非字面修饰。",
+    "sentences": [
+      {
+        "en": "The new tax policy, effectively, restores the old hierarchy under a different name.",
+        "zh": "新的税收政策实际上以另一名义恢复了旧的等级秩序。"
+      },
+      {
+        "en": "Immersion, effectively, attributes the affective effect of games to narrative, while overlooking the role of hardware.",
+        "zh": "沉浸感事实上把游戏的情动效应归因于叙事，却忽略了硬件的作用。"
+      }
+    ]
+  },
+  {
+    "word": "reintroducing",
+    "phonetic": "/ˌriːɪntrəˈdjuːsɪŋ/",
+    "meaning": "v.(gerund) 重新引入（本该被弃用之物）",
+    "forms": "reintroduce; reintroduced; reintroduction (n.)",
+    "context": "critical",
+    "note": "强批判用语，暗示“复活了应被抛弃的旧问题”。",
+    "sentences": [
+      {
+        "en": "The framework, despite its progressive rhetoric, reintroduces precisely the binaries it claims to overcome.",
+        "zh": "这一框架尽管修辞上看似进步，却恰恰重新引入了它声称要超越的二元对立。"
+      }
+    ]
+  },
+  {
+    "word": "Cartesian split",
+    "phonetic": "/kɑːˈtiːzjən splɪt/",
+    "meaning": "n. 笛卡尔式分裂（身/心二元论）",
+    "forms": "—",
+    "context": "philosophical critique",
+    "note": "学术批判靶子之一，现象学、神经哲学、女性主义认识论都以瓦解它为出发点。",
+    "sentences": [
+      {
+        "en": "Cognitive science risks reintroducing a Cartesian split when it treats the brain as the seat of mind.",
+        "zh": "当认知科学将大脑视为心智之所在时，便有重新引入笛卡尔式分裂的危险。"
+      }
+    ]
+  },
+  {
+    "word": "dismantled",
+    "phonetic": "/dɪsˈmæntld/",
+    "meaning": "v.(past) 拆解；瓦解（论证或结构）",
+    "forms": "dismantle; dismantling",
+    "context": "academic critique",
+    "note": "学术比喻义，几乎只用此义。比 critique / challenge 更有力。",
+    "sentences": [
+      {
+        "en": "Foucault's Discipline and Punish dismantled the liberal assumption that modern punishment is more humane than its predecessors.",
+        "zh": "福柯的《规训与惩罚》瓦解了自由主义“现代刑罚比前代更人道”的假设。"
+      }
+    ]
+  },
+  {
+    "word": "embodies",
+    "phonetic": "/ɪmˈbɒdiz/",
+    "meaning": "v. 具身；化身为（现象学专业义）",
+    "forms": "embody; embodied; embodiment (n.)",
+    "context": "phenomenology",
+    "note": "Merleau-Ponty 传统核心动词。比 inhabit / experience 都更带“身体性”。",
+    "sentences": [
+      {
+        "en": "The dancer does not merely move within space; she embodies space, making it part of her perceiving body.",
+        "zh": "舞者不只是在空间中运动；她将空间具身化，使其成为她感知身体的一部分。"
+      }
+    ]
+  },
+  {
+    "word": "hybridised",
+    "phonetic": "/ˈhaɪbrɪdaɪzd/",
+    "meaning": "adj. 混杂的",
+    "forms": "hybridise (v.); hybridity (n.); 美式拼写 hybridized",
+    "context": "post-colonial theory",
+    "note": "Homi Bhabha 后殖民理论术语。英式拼写 -ised，美式 -ized。",
+    "sentences": [
+      {
+        "en": "The novel's narrative voice is hybridised, weaving together oral tradition, colonial archive, and contemporary urban slang.",
+        "zh": "这部小说的叙事声音是混杂的，编织起口述传统、殖民档案与当代都市俚语。"
+      }
+    ]
+  },
+  {
+    "word": "incorporating",
+    "phonetic": "/ɪnˈkɔːpəreɪtɪŋ/",
+    "meaning": "v.(gerund) 纳入（进入身体范围）",
+    "forms": "incorporate; incorporated; incorporation (n.)",
+    "context": "phenomenology",
+    "note": "词源 in- + corpus（身体），与 embody / corporeal 同源。固定搭配：incorporate X into Y。",
+    "sentences": [
+      {
+        "en": "The phenomenologist argues that tools, once mastered, are incorporated into the body's perceptual reach.",
+        "zh": "现象学者主张，工具一旦被掌握，便被纳入身体的感知触及范围。"
+      }
+    ]
+  },
+  {
+    "word": "corporeal schema",
+    "phonetic": "/kɔːˈpɔːriəl ˈskiːmə/",
+    "meaning": "n. 身体图式（Merleau-Ponty 术语）",
+    "forms": "—",
+    "context": "phenomenology",
+    "note": "法文 schéma corporel，出自 Phénoménologie de la perception (1945)。",
+    "sentences": [
+      {
+        "en": "Habitual tool use reshapes the corporeal schema: the cane of a blind person becomes an extension of perception.",
+        "zh": "习惯性的工具使用重塑了身体图式：盲人的手杖成为感知的延伸。"
+      }
+    ]
+  },
+  {
+    "word": "cyborg",
+    "phonetic": "/ˈsaɪbɔːɡ/",
+    "meaning": "n. 赛博格（Haraway：拒绝身/机二元的政治-哲学姿态）",
+    "forms": "—",
+    "context": "cultural theory",
+    "note": "出自 Haraway, “A Cyborg Manifesto” (1985)。学术语境用此义，而非科幻通俗义。",
+    "sentences": [
+      {
+        "en": "Haraway's cyborg is not a science-fiction trope but a political figure: a refusal of pure boundaries.",
+        "zh": "哈拉维的赛博格不是科幻套路，而是一个政治形象：对纯粹边界的拒绝。"
+      }
+    ]
+  },
+  {
+    "word": "posthuman",
+    "phonetic": "/pəʊstˈhjuːmən/",
+    "meaning": "adj. 后人类（Hayles：主体性重构的理论术语）",
+    "forms": "posthumanism (n.); posthumanist (adj./n.)",
+    "context": "cultural theory",
+    "note": "posthuman ≠ transhuman。前者文化研究术语，后者技术乐观主义术语。",
+    "sentences": [
+      {
+        "en": "The posthuman subject is not a future being but a way of redescribing what subjects have always been: distributed, interdependent, technologically extended.",
+        "zh": "后人类主体并非未来的存在者，而是对主体一直所是之物的重新描述：分布的、相互依存的、被技术延伸的。"
+      }
+    ]
+  },
+  {
+    "word": "distributed and emergent",
+    "phonetic": "",
+    "meaning": "adj.phr. 被分布且涌现的",
+    "forms": "—",
+    "context": "philosophy of mind",
+    "note": "两个词一起用，描述“既无中心也无固定身份的存在方式”。",
+    "sentences": [
+      {
+        "en": "Consciousness, on this view, is distributed and emergent: it does not reside in the brain alone but unfolds across body, environment, and tools.",
+        "zh": "按此观点，意识是被分布且涌现的：它并非仅居于大脑，而在身体、环境与工具之间展开。"
+      }
+    ]
+  },
+  {
+    "word": "this is what might be called X",
+    "phonetic": "",
+    "meaning": "syntax. 谦逊命名：引入新术语",
+    "forms": "—",
+    "context": "academic syntax",
+    "note": "比 “I will call this X” 谦逊得多。把命名行为推给无人称的“可能会被称为”。",
+    "sentences": [
+      {
+        "en": "This is what might be called the engineered sublime — an event that takes place in the player's body rather than on the screen.",
+        "zh": "这或许可以称作“被工程化的崇高”——一种发生在玩家身体上而非屏幕上的事件。"
+      }
+    ]
+  },
+  {
+    "word": "it is X that",
+    "phonetic": "",
+    "meaning": "syntax. 分裂句强调",
+    "forms": "—",
+    "context": "academic syntax",
+    "note": "Cleft sentence，用于“在多个可能位置中，我选这一个”。",
+    "sentences": [
+      {
+        "en": "It is in the moment when the player's natural attitude is interrupted that the engineered sublime truly appears.",
+        "zh": "正是在玩家的自然态度被打断的那一刻，被工程化的崇高才真正显现。"
+      }
+    ]
+  },
+  {
+    "word": "I am not claiming X, my point is rather Y",
+    "phonetic": "",
+    "meaning": "syntax. 撤回 + 精确化",
+    "forms": "—",
+    "context": "academic syntax",
+    "note": "先撤回别人可能误以为你主张的强版本，再精确界定真正论点。",
+    "sentences": [
+      {
+        "en": "I am not claiming that horror in games is carried solely by narrative. My point is rather that the affective effect circulates across multiple registers.",
+        "zh": "我并非主张游戏中的恐怖完全由叙事承载。我的论点毋宁是：情动效应在多个层面之间流转。"
+      }
+    ]
+  },
+  {
+    "word": "and yet",
+    "phonetic": "",
+    "meaning": "phr. 然而（哲学化转折）",
+    "forms": "—",
+    "context": "academic syntax",
+    "note": "比 however 更轻、更哲学化。保持思想张力而非反驳。",
+    "sentences": [
+      {
+        "en": "All of this, the author concedes, is necessary; and yet it also reveals what the framework cannot say.",
+        "zh": "作者承认所有这些都是必要的；然而它也揭示了这一框架所不能言说之物。"
+      }
+    ]
+  },
+  {
+    "word": "demands",
+    "phonetic": "/dɪˈmɑːndz/",
+    "meaning": "v. 要求；强动词论证（暗示逻辑必然性）",
+    "forms": "demand; demanding; demanded",
+    "context": "academic argument",
+    "note": "论证关键转折处使用，暗示逻辑必然性。慎用，过度则显武断。同义近词：requires。",
+    "sentences": [
+      {
+        "en": "The hybridity of the videogame text demands a cyborg identity that understands the player as posthuman.",
+        "zh": "电子游戏文本的混杂性要求一种赛博格身份——将玩家理解为后人类。"
+      }
+    ]
+  }
+]

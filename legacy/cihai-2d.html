@@ -1,0 +1,2800 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>词海 · Cihai</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f3efe7;
+    --ink: #2a2620;
+    --ink-soft: #5b574f;
+    --line: #d9d2c4;
+    --paper: #fbf8f2;
+    --accent: #6b8e7f;
+    --accent-warm: #c98b6b;
+    --gold: #c9a14a;
+    --danger: #b85c5c;
+    --ok: #6b8e7f;
+    font-family: "Noto Serif SC", "Songti SC", Georgia, "PingFang SC", serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+  .app {
+    display: grid;
+    grid-template-columns: 440px 1fr;
+    gap: 18px;
+    padding: 18px;
+    max-width: 1500px;
+    margin: 0 auto;
+    width: 100%;
+    flex: 1;
+  }
+  @media (max-width: 980px) { .app { grid-template-columns: 1fr; } }
+  button { font: inherit; }
+
+  /* ------- Panel ------- */
+  .panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 10px;
+  }
+  .brand h1 { margin: 0; font-size: 22px; letter-spacing: 4px; font-weight: 500; }
+  .brand .sub { font-size: 11px; color: var(--ink-soft); letter-spacing: 2px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 11px; color: var(--ink-soft); }
+  .stats div { background: #f1ede4; padding: 7px 4px; border-radius: 8px; text-align: center; }
+  .stats strong { display: block; font-size: 15px; color: var(--ink); font-weight: 500; margin-bottom: 2px; }
+  .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .tabs button {
+    background: transparent; border: 0; padding: 7px 9px; font-size: 12px;
+    color: var(--ink-soft); cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; letter-spacing: 2px;
+  }
+  .tabs button.active { color: var(--ink); border-bottom-color: var(--accent); }
+  .pane { display: none; flex: 1; flex-direction: column; min-height: 0; gap: 8px; overflow: auto; }
+  .pane.active { display: flex; }
+
+  /* ------- Learning steps ------- */
+  .step-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--ink-soft); letter-spacing: 2px;
+  }
+  .step-dots { display: flex; gap: 4px; }
+  .step-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+  .step-dot.done { background: var(--ink-soft); }
+  .step-dot.cur { background: var(--accent); }
+  .learn-card {
+    background: linear-gradient(180deg, #fdfbf6, #f3ecdc);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(60, 50, 30, 0.05);
+  }
+  .word-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .word-head .word { font-size: 26px; letter-spacing: 1px; }
+  .word-head .phonetic { color: var(--ink-soft); font-size: 13px; }
+  .speak-btn {
+    width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--paper); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .field-label { font-size: 11px; color: var(--ink-soft); letter-spacing: 2px; margin-top: 10px; }
+  .meaning-zh { font-size: 16px; margin-top: 2px; }
+  .forms { font-size: 13px; color: var(--ink-soft); }
+  .context-tag {
+    display: inline-block; font-size: 11px; color: var(--accent);
+    border: 1px solid var(--accent); padding: 1px 8px; border-radius: 10px; margin-top: 4px;
+  }
+  .sentence { font-size: 14px; margin-top: 6px; line-height: 1.7; }
+  .sentence .zh { color: var(--ink-soft); font-size: 13px; }
+  .sentence .en em { font-style: normal; background: #f5e7c8; padding: 0 2px; border-radius: 2px; }
+
+  .step-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .step-actions button {
+    flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--paper); cursor: pointer; letter-spacing: 2px;
+  }
+  .step-actions .primary { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* match step */
+  .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .match-col { display: flex; flex-direction: column; gap: 6px; }
+  .match-item {
+    padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper);
+    cursor: pointer; font-size: 13px; line-height: 1.5;
+  }
+  .match-item.selected { border-color: var(--accent); background: #ecf2ef; }
+  .match-item.paired { opacity: 0.45; pointer-events: none; }
+  .match-item.wrong { animation: shake 0.4s; border-color: var(--danger); }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+
+  /* reconstruct step */
+  .word-bag { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border: 1px dashed var(--line); border-radius: 8px; min-height: 50px; }
+  .bag-word {
+    padding: 4px 9px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
+    cursor: pointer; font-size: 13px;
+  }
+  .bag-word.used { opacity: 0.3; pointer-events: none; }
+  .recon-line { margin-top: 10px; font-size: 13px; }
+  .recon-line .zh { color: var(--ink-soft); margin-bottom: 4px; }
+  .recon-slots { display: flex; flex-wrap: wrap; gap: 4px; }
+  .recon-slot {
+    min-width: 40px; border-bottom: 1px solid var(--ink-soft); padding: 2px 6px;
+    cursor: pointer; min-height: 22px; text-align: center; font-size: 13px;
+  }
+  .recon-slot.filled { background: #f5e7c8; border-bottom-color: var(--accent); }
+  .recon-slot.wrong { background: #f3d6d6; }
+
+  /* dictate step */
+  .dictate-input {
+    width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px;
+    font: inherit; font-size: 16px; text-align: center; letter-spacing: 1px;
+    background: var(--paper); color: var(--ink);
+  }
+  .dictate-feedback { text-align: center; font-size: 13px; color: var(--ink-soft); min-height: 18px; }
+
+  /* group test */
+  .group-test-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 8px; margin-top: 8px; }
+  .gt-bag { padding: 8px; border: 1px dashed var(--line); border-radius: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; }
+  .gt-bag .gt-word {
+    padding: 4px 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
+    cursor: pointer; font-size: 13px;
+  }
+  .gt-bag .gt-word.used { opacity: 0.25; pointer-events: none; }
+  .gt-row { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-bottom: 6px; }
+  .gt-row .zh { flex: 1; color: var(--ink); }
+  .gt-row .slot {
+    min-width: 90px; border-bottom: 1px solid var(--ink-soft); padding: 2px 6px;
+    text-align: center; cursor: pointer; min-height: 22px;
+  }
+  .gt-row .slot.filled { background: #f5e7c8; border-bottom-color: var(--accent); }
+  .gt-row .slot.right { background: #d8e8d6; border-bottom-color: var(--ok); }
+  .gt-row .slot.wrong { background: #f3d6d6; border-bottom-color: var(--danger); }
+
+  /* review (flashcard) */
+  .card {
+    background: linear-gradient(180deg, #fdfbf6, #f3ecdc);
+    border: 1px solid var(--line); border-radius: 12px; padding: 22px;
+    text-align: center; min-height: 200px;
+    display: flex; flex-direction: column; justify-content: center; gap: 10px;
+    cursor: pointer; user-select: none;
+    box-shadow: 0 2px 8px rgba(60, 50, 30, 0.05);
+  }
+  .card .word { font-size: 30px; letter-spacing: 1px; }
+  .card .meaning { font-size: 15px; color: var(--ink-soft); display: none; }
+  .card.revealed .meaning { display: block; }
+  .card .hint { font-size: 11px; color: var(--ink-soft); letter-spacing: 2px; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .actions button {
+    padding: 10px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--paper); font: inherit; font-size: 13px; letter-spacing: 2px; cursor: pointer;
+  }
+  .actions .remember { background: var(--accent); color: white; border-color: var(--accent); }
+  .session-meta { font-size: 12px; color: var(--ink-soft); display: flex; justify-content: space-between; margin-top: 6px; }
+  .end-session {
+    margin-top: 8px; padding: 8px; border-radius: 8px; border: 1px dashed var(--line);
+    background: transparent; font-size: 12px; color: var(--ink-soft); cursor: pointer; letter-spacing: 2px;
+  }
+
+  /* pomodoro */
+  .timer-display { text-align: center; font-size: 56px; letter-spacing: 6px; margin: 20px 0 10px; }
+  .timer-sub { text-align: center; color: var(--ink-soft); font-size: 12px; letter-spacing: 3px; }
+  .timer-actions { display: flex; gap: 8px; margin-top: 18px; }
+  .timer-actions button {
+    flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--paper); cursor: pointer; letter-spacing: 2px;
+  }
+  .timer-actions .primary { background: var(--accent-warm); color: white; border-color: var(--accent-warm); }
+  .pom-stat { margin-top: 12px; font-size: 12px; color: var(--ink-soft); text-align: center; }
+
+  /* species */
+  .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .inv-item { background: #f1ede4; border-radius: 10px; padding: 8px; text-align: center; }
+  .inv-item .ic { font-size: 20px; }
+  .inv-item .lbl { font-size: 11px; color: var(--ink-soft); }
+  .inv-item .num { font-size: 15px; font-weight: 500; }
+  .inv-note { font-size: 11px; color: var(--ink-soft); margin-top: 10px; line-height: 1.7; }
+
+  /* vocab */
+  .vocab-area textarea {
+    width: 100%; min-height: 140px; resize: vertical; padding: 10px;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--paper); font: inherit; font-size: 12px; color: var(--ink);
+    line-height: 1.5;
+  }
+  .vocab-row { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .vocab-row button {
+    flex: 1; padding: 7px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--paper); font-size: 12px; cursor: pointer; letter-spacing: 1px;
+    min-width: 70px;
+  }
+  .vocab-list { margin-top: 10px; font-size: 12px; color: var(--ink-soft); max-height: 180px; overflow: auto; }
+  .vocab-list div { padding: 3px 0; border-bottom: 1px dashed var(--line); display: flex; justify-content: space-between; }
+
+  /* cosmetics */
+  .cos-section { padding: 10px; background: #f1ede4; border-radius: 10px; }
+  .cos-section h3 { margin: 0 0 8px; font-size: 12px; letter-spacing: 3px; font-weight: 500; color: var(--ink-soft); }
+  .cos-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .cos-row label { flex: 0 0 65px; font-size: 12px; color: var(--ink-soft); }
+  .cos-row .file-btn {
+    padding: 4px 10px; background: var(--paper); border: 1px solid var(--line);
+    border-radius: 6px; font-size: 12px; cursor: pointer;
+  }
+  .cos-row .clear { font-size: 11px; color: var(--danger); cursor: pointer; background: none; border: 0; }
+  .cos-preview { width: 40px; height: 24px; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; background-size: cover; background-position: center; }
+
+  /* aquarium */
+  .aquarium-wrap {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 600px;
+  }
+  .aq-head { display: flex; justify-content: space-between; align-items: center; }
+  .aq-head h2 { margin: 0; font-size: 14px; letter-spacing: 4px; font-weight: 500; color: var(--ink-soft); }
+  .aq-head .legend { font-size: 11px; color: var(--ink-soft); letter-spacing: 1px; }
+  .canvas-frame {
+    position: relative; border-radius: 12px; overflow: hidden;
+    background: linear-gradient(180deg, #2a8aa8 0%, #134a76 50%, #0b2540 100%);
+    aspect-ratio: 16 / 10; min-height: 280px;
+    box-shadow: inset 0 0 60px rgba(0,0,0,0.35);
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+  .medal-shelf {
+    background: linear-gradient(180deg, #efe6d2, #ddd0b3);
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px;
+    min-height: 60px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start;
+  }
+  .medal-shelf:empty::before {
+    content: "奖牌架"; color: var(--ink-soft); font-size: 11px; letter-spacing: 4px;
+    align-self: center; margin: auto;
+  }
+  .medal {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #f1cb6a, #a07a26);
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+    box-shadow: inset 0 -2px 3px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.25);
+    color: #3a2a08;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: rgba(20, 20, 20, 0.85); color: #f5f0e2;
+    padding: 10px 18px; border-radius: 24px; font-size: 13px; letter-spacing: 2px;
+    opacity: 0; pointer-events: none; transition: opacity 0.4s ease; z-index: 50;
+  }
+  .toast.show { opacity: 1; }
+  .empty-hint { text-align: center; color: var(--ink-soft); font-size: 13px; padding: 30px; line-height: 1.8; }
+
+  /* quick-add */
+  .quick-add { background:#f1ede4; border-radius:10px; padding:10px; margin-bottom:6px; }
+  .qa-row { display:flex; gap:6px; }
+  .qa-row input {
+    flex:1; padding:7px 10px; border:1px solid var(--line); border-radius:6px;
+    background:var(--paper); font:inherit; font-size:13px; color:var(--ink);
+  }
+  .qa-row button {
+    padding:7px 14px; border:1px solid var(--accent); background:var(--accent); color:white;
+    border-radius:6px; cursor:pointer; font-size:13px;
+  }
+  .qa-status { font-size:11px; color:var(--ink-soft); margin-top:6px; min-height:14px; letter-spacing:1px; }
+  .qa-pending { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; max-height:60px; overflow:auto; }
+  .qa-chip {
+    padding:2px 8px; background:var(--paper); border:1px solid var(--line);
+    border-radius:10px; font-size:11px; display:inline-flex; align-items:center; gap:4px;
+  }
+  .qa-chip.loading { opacity:0.6; }
+  .qa-chip.failed { border-color:var(--danger); color:var(--danger); }
+  .qa-chip.ready { border-color:var(--accent); }
+  .qa-spin {
+    display:inline-block; width:8px; height:8px; border:1.5px solid var(--accent);
+    border-top-color:transparent; border-radius:50%; animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .set-progress {
+    font-size:11px; color:var(--ink-soft); padding:6px 8px;
+    background:#f1ede4; border-radius:6px; margin-top:6px; letter-spacing:1px;
+  }
+
+  /* fill-in / dictation review */
+  .fill-card {
+    background:linear-gradient(180deg, #fdfbf6, #f3ecdc);
+    border:1px solid var(--line); border-radius:12px; padding:16px;
+    box-shadow:0 2px 8px rgba(60,50,30,0.05);
+  }
+  .fill-zh { color:var(--ink-soft); font-size:14px; line-height:1.7; margin-bottom:12px; }
+  .fill-en { font-size:16px; line-height:2.0; word-spacing:1px; }
+  .fill-en .blank {
+    display:inline-block; min-width:80px; border-bottom:1.5px solid var(--ink);
+    padding:0 6px; text-align:center; font-style:italic; color:var(--accent);
+  }
+  .fill-input {
+    width:100%; padding:10px; border:1px solid var(--line); border-radius:8px;
+    font:inherit; font-size:14px; background:var(--paper); color:var(--ink); margin-top:10px;
+  }
+  .fill-feedback {
+    margin-top:8px; min-height:18px; font-size:12px; text-align:center; color:var(--ink-soft);
+  }
+  .fill-feedback.right { color:var(--ok); }
+  .fill-feedback.wrong { color:var(--danger); }
+  .chances { display:flex; gap:5px; align-items:center; font-size:11px; color:var(--ink-soft); margin-top:8px; }
+  .chance-dot { width:9px; height:9px; border-radius:50%; background:var(--accent); }
+  .chance-dot.used { background:var(--line); }
+
+  .dictation-area textarea {
+    width:100%; min-height:70px; padding:10px; border:1px solid var(--line); border-radius:8px;
+    font:inherit; font-size:14px; background:var(--paper); color:var(--ink); resize:vertical;
+    margin-top:10px;
+  }
+  .dict-diff { margin-top:8px; font-size:13px; line-height:1.7; }
+  .dict-diff .right { color:var(--ok); }
+  .dict-diff .wrong { color:var(--danger); text-decoration:line-through; }
+  .dict-diff .missing { color:var(--accent-warm); text-decoration:underline; }
+
+  .mastery-badge {
+    display:inline-block; font-size:10px; color:var(--gold);
+    border:1px solid var(--gold); padding:1px 6px; border-radius:8px; margin-left:6px; letter-spacing:1px;
+  }
+  .mode-tag {
+    font-size:10px; color:var(--ink-soft); letter-spacing:2px;
+    border:1px solid var(--line); padding:1px 8px; border-radius:8px;
+  }
+
+  /* sync indicator */
+  .sync-pill {
+    display:inline-flex; align-items:center; gap:5px; padding:2px 8px;
+    border-radius:10px; font-size:10px; letter-spacing:1px;
+    background:#f1ede4; color:var(--ink-soft); cursor:pointer; user-select:none;
+  }
+  .sync-pill .dot { width:7px; height:7px; border-radius:50%; background:var(--ink-soft); }
+  .sync-pill.ok .dot { background:var(--ok); }
+  .sync-pill.warn .dot { background:var(--accent-warm); }
+  .sync-pill.err .dot { background:var(--danger); }
+  .sync-pill.busy .dot { background:var(--accent); animation:spin 1.2s linear infinite; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel">
+    <div class="brand">
+      <h1>词海</h1>
+      <div class="sync-pill" id="sync-pill" title="点击立即同步"><span class="dot"></span><span id="sync-label">本地</span></div>
+    </div>
+
+    <div class="stats">
+      <div><strong id="s-learned">0</strong>今日新学</div>
+      <div><strong id="s-words">0</strong>累计已学</div>
+      <div><strong id="s-acc">—</strong>正确率</div>
+      <div><strong id="s-min">0</strong>专注分钟</div>
+    </div>
+
+    <div class="tabs">
+      <button data-tab="learn" class="active">学习</button>
+      <button data-tab="review">复习</button>
+      <button data-tab="pomodoro">专注</button>
+      <button data-tab="species">物种</button>
+      <button data-tab="vocab">词库</button>
+      <button data-tab="look">外观</button>
+    </div>
+
+    <!-- Learning -->
+    <div class="pane active" data-pane="learn">
+      <div id="learn-root"></div>
+    </div>
+
+    <!-- Review (flashcard) -->
+    <div class="pane" data-pane="review">
+      <div id="review-root"></div>
+    </div>
+
+    <!-- Pomodoro -->
+    <div class="pane" data-pane="pomodoro">
+      <div class="timer-display" id="timer">25:00</div>
+      <div class="timer-sub">专注种下海草</div>
+      <div class="timer-actions">
+        <button id="pom-start" class="primary">开始</button>
+        <button id="pom-reset">重置</button>
+      </div>
+      <div class="pom-stat" id="pom-stat">今日累计 0 分钟</div>
+      <div class="pom-stat">20 分 → 海草 · 40 分 → 海葵 · 60 分 → 珊瑚</div>
+    </div>
+
+    <!-- Species -->
+    <div class="pane" data-pane="species">
+      <div class="inv-grid" id="inv-grid"></div>
+      <div class="inv-note">
+        转化规则：50 小鱼 → 留 25 + 奖牌；15 月亮鱼 → 留 5 + 奖牌；10 小丑鱼 → 留 5 + 奖牌；4 大鱼 → 留 1 + 奖牌。
+        20 海草 → 留 5 + 奖牌；10 海葵 → 留 5 + 奖牌；8 珊瑚 → 留 2 + 奖牌。
+      </div>
+    </div>
+
+    <!-- Vocab -->
+    <div class="pane" data-pane="vocab">
+      <div class="vocab-area">
+        <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">
+          简单格式：<code>word | 释义</code> 每行一个。<br/>
+          完整格式：<code>[</code> 开头粘贴 JSON 数组（含 phonetic, forms, context, sentences）。
+          <button id="vocab-example" style="margin-left:6px; font-size:11px; padding:2px 6px; cursor:pointer; background:var(--paper); border:1px solid var(--line); border-radius:4px;">示例</button>
+        </div>
+        <textarea id="vocab-input" placeholder="ephemeral | adj. 短暂的&#10;solace | n. 慰藉"></textarea>
+        <div class="vocab-row">
+          <button id="vocab-add">追加</button>
+          <button id="vocab-replace">替换全部</button>
+          <button id="vocab-reset">清空进度</button>
+        </div>
+      </div>
+      <div class="vocab-list" id="vocab-list"></div>
+      <div class="cos-section" style="margin-top:10px;" id="cloud-panel">
+        <h3>数据 · 云端与本地</h3>
+        <div id="cloud-panel-body"></div>
+      </div>
+    </div>
+
+    <!-- Cosmetics -->
+    <div class="pane" data-pane="look">
+      <div class="cos-section">
+        <h3>海缸背景</h3>
+        <div class="cos-row">
+          <label>背景图</label>
+          <input type="file" id="bg-file" accept="image/*" style="display:none">
+          <button class="file-btn" id="bg-pick">选择图片</button>
+          <div class="cos-preview" id="bg-preview"></div>
+          <button class="clear" id="bg-clear">清除</button>
+        </div>
+        <div style="font-size:11px;color:var(--ink-soft);">建议 16:10 横图；留空则使用默认渐变。</div>
+      </div>
+      <div class="cos-section">
+        <h3>物种形象（PNG / SVG，透明背景最佳）</h3>
+        <div id="creature-rows"></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="aquarium-wrap">
+    <div class="aq-head">
+      <h2>海 缸</h2>
+      <div class="legend">小鱼 · 月亮鱼 · 小丑鱼 · 大鱼 · 海龟 · 海葵 · 珊瑚 · 海草</div>
+    </div>
+    <div class="canvas-frame"><canvas id="aq"></canvas></div>
+    <div class="medal-shelf" id="medal-shelf"></div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   CIHAI v2
+   ============================================================ */
+
+const STORAGE_KEY = "cihai.v2";
+
+/* ---------- Starter vocabulary (rich) ---------- */
+const STARTER_VOCAB = [
+  { word: "ephemeral", phonetic: "/ɪˈfemərəl/", meaning: "adj. 短暂的；瞬息的",
+    forms: "ephemerally (adv.); ephemerality (n.)", context: "literary",
+    sentences: [
+      { en: "Her joy was ephemeral, fading with the dawn.", zh: "她的喜悦是短暂的，随黎明一同消散。" },
+      { en: "All beauty is in some sense ephemeral.", zh: "一切美在某种意义上都是短暂的。" } ] },
+  { word: "solace", phonetic: "/ˈsɒləs/", meaning: "n./v. 安慰；慰藉",
+    forms: "solaced; solacing", context: "literary",
+    sentences: [
+      { en: "She found solace in the quiet of the library.", zh: "她在图书馆的安静中找到了慰藉。" },
+      { en: "Music has long solaced the human heart.", zh: "音乐自古慰藉人心。" } ] },
+  { word: "nuance", phonetic: "/ˈnjuːɑːns/", meaning: "n. 细微差别",
+    forms: "nuanced (adj.)", context: "critical",
+    sentences: [
+      { en: "He missed the nuance of her tone.", zh: "他没听出她语气里的细微差别。" },
+      { en: "Translation often loses nuance.", zh: "翻译往往丢失细微差别。" } ] },
+  { word: "serendipity", phonetic: "/ˌserənˈdɪpəti/", meaning: "n. 美好的偶然",
+    forms: "serendipitous (adj.)", context: "narrative",
+    sentences: [
+      { en: "Their meeting was pure serendipity.", zh: "他们的相遇纯属美好的偶然。" },
+      { en: "Many discoveries come by serendipity.", zh: "许多发现来自意外的好运。" } ] },
+  { word: "resilient", phonetic: "/rɪˈzɪliənt/", meaning: "adj. 有韧性的；能复原的",
+    forms: "resilience (n.); resiliently (adv.)", context: "psychological",
+    sentences: [
+      { en: "Children are remarkably resilient.", zh: "孩子的复原力惊人。" },
+      { en: "The forest is resilient against fire.", zh: "森林对火灾有恢复力。" } ] },
+  { word: "ineffable", phonetic: "/ɪnˈefəbl/", meaning: "adj. 难以言表的",
+    forms: "ineffability (n.)", context: "spiritual",
+    sentences: [
+      { en: "There is something ineffable about the sea at dusk.", zh: "黄昏的海，有一种难以言表之物。" },
+      { en: "She felt an ineffable sense of peace.", zh: "她感到一种无法言喻的平静。" } ] },
+  { word: "liminal", phonetic: "/ˈlɪmɪnəl/", meaning: "adj. 阈限的；过渡的",
+    forms: "liminality (n.)", context: "phenomenology",
+    sentences: [
+      { en: "Dusk is a liminal hour between day and night.", zh: "黄昏是昼夜之间的阈限时刻。" },
+      { en: "Adolescence is a liminal stage of life.", zh: "青春期是人生的过渡阶段。" } ] },
+  { word: "meander", phonetic: "/miˈændər/", meaning: "v. 蜿蜒；漫步",
+    forms: "meandering (adj./n.)", context: "literary",
+    sentences: [
+      { en: "The river meanders through the meadow.", zh: "河流蜿蜒穿过草地。" },
+      { en: "We meandered through the old town.", zh: "我们在老城里漫步。" } ] },
+  { word: "wistful", phonetic: "/ˈwɪstfl/", meaning: "adj. 怅然若失的",
+    forms: "wistfully (adv.)", context: "emotional",
+    sentences: [
+      { en: "She gave a wistful smile.", zh: "她露出怅然的微笑。" },
+      { en: "He looked wistfully at the photograph.", zh: "他怅然地望着那张照片。" } ] },
+  { word: "reverie", phonetic: "/ˈrevəri/", meaning: "n. 遐想",
+    forms: "—", context: "poetic",
+    sentences: [
+      { en: "He fell into a reverie of childhood.", zh: "他陷入对童年的遐想。" },
+      { en: "A reverie can be more truthful than thought.", zh: "遐想有时比思考更接近真实。" } ] }
+];
+
+const VOCAB_JSON_EXAMPLE = JSON.stringify([
+  { word: "sample", phonetic: "/ˈsɑːmpl/", meaning: "n./v. 样本；取样",
+    forms: "sampled; sampling", context: "general",
+    sentences: [
+      { en: "She took a sample of water.", zh: "她取了一份水样。" },
+      { en: "We sampled the local food.", zh: "我们品尝了当地的食物。" } ] }
+], null, 2);
+
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
+}
+
+function newVocabEntry(raw, id) {
+  return {
+    id,
+    word: raw.word,
+    phonetic: raw.phonetic || "",
+    meaning: raw.meaning || "",
+    forms: raw.forms || "",
+    context: raw.context || "",
+    note: raw.note || "",
+    sentences: Array.isArray(raw.sentences) ? raw.sentences : [],
+    learned: false,
+    known: 0,
+    miss: 0,
+    mastered: false
+  };
+}
+
+const defaultState = () => ({
+  vocab: STARTER_VOCAB.map((r, i) => newVocabEntry(r, i)),
+  inv: {
+    smallFish: 0, moonFish: 0, clownfish: 0, bigFish: 0, turtle: 0,
+    seaweed: 0, anemone: 0, coral: 0, medals: []
+  },
+  today: { date: todayKey(), learnedToday: 0, attempts: 0, correct: 0, minutes: 0 },
+  rewardBuckets: { ten: 0, twentyFive: 0, fifty: 0, hundred: 0, twoHundred: 0 },
+  timeBuckets: { twenty: 0, forty: 0, sixty: 0 },
+  learnSession: null,    // { queue: [ids], idx: int, step: int, mode: 'word'|'group' }
+  reviewSession: { attempts: 0, correct: 0 },
+  cosmetics: {
+    background: null,
+    creatures: { smallFish:null, moonFish:null, clownfish:null, bigFish:null, turtle:null,
+                 seaweed:null, anemone:null, coral:null }
+  }
+});
+
+let state;
+try {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  state = raw ? JSON.parse(raw) : defaultState();
+  if (!state.today || state.today.date !== todayKey()) {
+    state.today = { date: todayKey(), learnedToday: 0, attempts: 0, correct: 0, minutes: 0 };
+  }
+  const fresh = defaultState();
+  for (const k of Object.keys(fresh)) if (!(k in state)) state[k] = fresh[k];
+  for (const k of Object.keys(fresh.inv)) if (!(k in state.inv)) state.inv[k] = fresh.inv[k];
+  if (!state.cosmetics) state.cosmetics = fresh.cosmetics;
+  if (!state.cosmetics.creatures) state.cosmetics.creatures = fresh.cosmetics.creatures;
+  state.reviewSession = { attempts: 0, correct: 0 };
+  // Recover stuck-in-loading entries from a previous session
+  for (const w of state.vocab) if (w.enrichmentStatus === "loading") w.enrichmentStatus = "failed";
+} catch (e) { state = defaultState(); }
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (typeof scheduleSync === "function") scheduleSync("save");
+}
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+/* ---------- Speech ---------- */
+function speak(text) {
+  if (!("speechSynthesis" in window)) { toast("浏览器不支持朗读"); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US"; u.rate = 0.88;
+  speechSynthesis.speak(u);
+}
+
+/* ---------- Google Drive sync (dual-mode) ----------
+   Mode A (COWORK_MODE = true): window.cowork.callMcpTool is present.
+                                Uses Cowork's Drive MCP wrapper.
+   Mode B (COWORK_MODE = false): standalone in any browser.
+                                Uses Google Identity Services + Drive REST API.
+   Each sync creates a new file (no "update" capability), pick newest on load.
+   The Cihai folder is created on first use.
+*/
+const COWORK_MODE = !!(window.cowork && window.cowork.callMcpTool);
+const DRIVE_PREFIX = "mcp__ac0f69de-16d9-4891-880a-7d68f33f7418__";
+const FILE_NAME = "cihai-state.json";
+const FOLDER_NAME = "Cihai";
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+const CLIENT_ID_KEY = "cihai.googleClientId";
+
+let GOOGLE_CLIENT_ID = (typeof CIHAI_HARDCODED_CLIENT_ID !== "undefined" && CIHAI_HARDCODED_CLIENT_ID)
+  ? CIHAI_HARDCODED_CLIENT_ID
+  : (localStorage.getItem(CLIENT_ID_KEY) || "");
+
+let cloudFolderId = null;
+let syncStatus = "idle";   // idle | busy | ok | warn | err
+let lastSyncedAt = null;
+let syncTimer = null;
+
+// OAuth state (standalone only)
+let accessToken = null;
+let tokenExpiresAt = 0;
+let tokenClient = null;
+let gisReady = false;
+
+function setSyncStatus(s, label) {
+  syncStatus = s;
+  const pill = document.getElementById("sync-pill");
+  const lbl = document.getElementById("sync-label");
+  if (!pill || !lbl) return;
+  pill.classList.remove("ok","warn","err","busy");
+  if (s !== "idle") pill.classList.add(s);
+  lbl.textContent = label;
+}
+
+// ---- Cowork backend (uses Drive MCP) ----
+async function callDriveCowork(tool, args) {
+  if (!window.cowork || !window.cowork.callMcpTool) {
+    throw new Error("Cowork MCP 不可用");
+  }
+  const r = await window.cowork.callMcpTool(DRIVE_PREFIX + tool, args);
+  if (r && r.isError) {
+    const t = r.content && r.content[0] && r.content[0].text;
+    throw new Error(t || "Drive error");
+  }
+  if (r && r.structuredContent) return r.structuredContent;
+  if (r && r.content && r.content[0] && r.content[0].text) {
+    try { return JSON.parse(r.content[0].text); } catch (e) { return r.content[0].text; }
+  }
+  return r;
+}
+
+// ---- OAuth + REST backend (standalone) ----
+function loadGIS() {
+  return new Promise((res, rej) => {
+    if (window.google && window.google.accounts) { res(); return; }
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.async = true; s.defer = true;
+    s.onload = res; s.onerror = () => rej(new Error("GIS 加载失败（网络？）"));
+    document.head.appendChild(s);
+  });
+}
+
+async function initOAuth() {
+  if (!GOOGLE_CLIENT_ID) throw new Error("未设置 Google Client ID");
+  await loadGIS();
+  if (!tokenClient) {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: () => {} // overridden per request
+    });
+  }
+  // Restore session token if still valid
+  try {
+    const cached = sessionStorage.getItem("cihai.oauthToken");
+    if (cached) {
+      const obj = JSON.parse(cached);
+      if (obj.expiresAt > Date.now() + 60000) {
+        accessToken = obj.token; tokenExpiresAt = obj.expiresAt;
+      }
+    }
+  } catch (e) {}
+  gisReady = true;
+}
+
+function requestToken(interactive) {
+  return new Promise((res, rej) => {
+    if (!tokenClient) { rej(new Error("OAuth 未初始化")); return; }
+    tokenClient.callback = (response) => {
+      if (response.error) { rej(new Error(response.error_description || response.error)); return; }
+      accessToken = response.access_token;
+      tokenExpiresAt = Date.now() + (response.expires_in - 60) * 1000;
+      sessionStorage.setItem("cihai.oauthToken", JSON.stringify({ token: accessToken, expiresAt: tokenExpiresAt }));
+      res(accessToken);
+    };
+    tokenClient.requestAccessToken({ prompt: interactive ? "consent" : "" });
+  });
+}
+
+async function ensureToken() {
+  if (accessToken && Date.now() < tokenExpiresAt) return accessToken;
+  if (!gisReady) await initOAuth();
+  return await requestToken(false);
+}
+
+async function restDriveSearch(query) {
+  const tk = await ensureToken();
+  const url = "https://www.googleapis.com/drive/v3/files?q=" +
+              encodeURIComponent(query) +
+              "&fields=files(id,name,mimeType,modifiedTime)&pageSize=100";
+  const r = await fetch(url, { headers: { Authorization: "Bearer " + tk } });
+  if (!r.ok) throw new Error("Drive search HTTP " + r.status);
+  const j = await r.json();
+  return { files: (j.files || []).map(f => ({ id: f.id, title: f.name, mimeType: f.mimeType, modifiedTime: f.modifiedTime })) };
+}
+
+async function restDriveCreateFolder(name) {
+  const tk = await ensureToken();
+  const r = await fetch("https://www.googleapis.com/drive/v3/files", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + tk, "Content-Type": "application/json" },
+    body: JSON.stringify({ name, mimeType: "application/vnd.google-apps.folder" })
+  });
+  if (!r.ok) throw new Error("Drive folder HTTP " + r.status);
+  return await r.json();
+}
+
+async function restDriveCreateFile(name, parentId, textContent) {
+  const tk = await ensureToken();
+  const boundary = "-------cihai" + Math.random().toString(36).slice(2);
+  const meta = { name, parents: parentId ? [parentId] : [] };
+  const body =
+    "--" + boundary + "\r\n" +
+    "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+    JSON.stringify(meta) + "\r\n" +
+    "--" + boundary + "\r\n" +
+    "Content-Type: application/json\r\n\r\n" +
+    textContent + "\r\n" +
+    "--" + boundary + "--";
+  const r = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + tk, "Content-Type": "multipart/related; boundary=" + boundary },
+    body
+  });
+  if (!r.ok) throw new Error("Drive create HTTP " + r.status);
+  return await r.json();
+}
+
+async function restDriveDownload(fileId) {
+  const tk = await ensureToken();
+  const r = await fetch("https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media", {
+    headers: { Authorization: "Bearer " + tk }
+  });
+  if (!r.ok) throw new Error("Drive download HTTP " + r.status);
+  return await r.text();
+}
+
+// ---- Unified API (mode-aware) ----
+async function ensureFolder() {
+  if (cloudFolderId) return cloudFolderId;
+  let result;
+  if (COWORK_MODE) {
+    result = await callDriveCowork("search_files", {
+      query: `title = '${FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder'`,
+      pageSize: 5
+    });
+  } else {
+    result = await restDriveSearch(`name = '${FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
+  }
+  const files = (result && result.files) || [];
+  if (files.length) { cloudFolderId = files[0].id; return cloudFolderId; }
+  let made;
+  if (COWORK_MODE) {
+    made = await callDriveCowork("create_file", {
+      title: FOLDER_NAME, contentMimeType: "application/vnd.google-apps.folder"
+    });
+  } else {
+    made = await restDriveCreateFolder(FOLDER_NAME);
+  }
+  cloudFolderId = made.id;
+  return cloudFolderId;
+}
+
+function canSync() {
+  if (COWORK_MODE) return true;
+  if (!GOOGLE_CLIENT_ID) { setSyncStatus("warn", "未设置 Client ID"); return false; }
+  if (!accessToken)      { setSyncStatus("warn", "未登录 Google"); return false; }
+  return true;
+}
+
+async function syncToCloud(reason) {
+  if (syncStatus === "busy") return;
+  if (!canSync()) return;
+  setSyncStatus("busy", "同步中…");
+  try {
+    const fid = await ensureFolder();
+    const syncedAt = new Date().toISOString();
+    state._syncedAt = syncedAt;
+    state._device = (navigator.userAgent || "").slice(0, 60);
+    const payload = JSON.stringify({ ...state, _reason: reason || "" });
+    let r;
+    if (COWORK_MODE) {
+      r = await callDriveCowork("create_file", {
+        title: FILE_NAME, textContent: payload,
+        contentMimeType: "application/json",
+        disableConversionToGoogleType: true,
+        parentId: fid
+      });
+    } else {
+      r = await restDriveCreateFile(FILE_NAME, fid, payload);
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    lastSyncedAt = new Date();
+    setSyncStatus("ok", "已同步 " + formatTime(lastSyncedAt));
+    return r;
+  } catch (e) {
+    setSyncStatus("err", "同步失败");
+    console.warn("syncToCloud failed:", e);
+    return null;
+  }
+}
+
+async function loadFromCloud() {
+  if (!canSync()) return null;
+  setSyncStatus("busy", "拉取中…");
+  try {
+    const fid = await ensureFolder();
+    let result;
+    if (COWORK_MODE) {
+      result = await callDriveCowork("search_files", {
+        query: `title = '${FILE_NAME}' and parentId = '${fid}'`,
+        pageSize: 50
+      });
+    } else {
+      result = await restDriveSearch(`name = '${FILE_NAME}' and '${fid}' in parents and trashed = false`);
+    }
+    const files = (result && result.files) || [];
+    if (!files.length) { setSyncStatus("warn", "云端无备份"); return null; }
+    files.sort((a, b) => (b.modifiedTime || "").localeCompare(a.modifiedTime || ""));
+    const newest = files[0];
+    let text;
+    if (COWORK_MODE) {
+      const dl = await callDriveCowork("download_file_content", { fileId: newest.id });
+      text = atob(dl.content || "");
+    } else {
+      text = await restDriveDownload(newest.id);
+    }
+    const cloudState = JSON.parse(text);
+    return { state: cloudState, modifiedTime: newest.modifiedTime };
+  } catch (e) {
+    setSyncStatus("err", "拉取失败");
+    console.warn("loadFromCloud failed:", e);
+    return null;
+  }
+}
+
+function scheduleSync(reason) {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => { syncToCloud(reason); }, 8000);
+  setSyncStatus("warn", "待同步");
+}
+
+function formatTime(d) {
+  return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+}
+
+async function bootCloudSync() {
+  if (!COWORK_MODE) {
+    // Standalone: need Client ID + login
+    if (!GOOGLE_CLIENT_ID) { setSyncStatus("warn", "未设置 Client ID"); renderCloudPanel(); return; }
+    try {
+      await initOAuth();
+      if (!accessToken) { setSyncStatus("warn", "未登录 Google"); renderCloudPanel(); return; }
+    } catch (e) {
+      setSyncStatus("err", "OAuth 初始化失败"); renderCloudPanel(); return;
+    }
+  }
+  const cloud = await loadFromCloud();
+  if (!cloud) { renderCloudPanel(); return; }
+  const cloudSyncedAt = cloud.state && cloud.state._syncedAt;
+  const localSyncedAt = state._syncedAt;
+  const cloudT = cloudSyncedAt ? new Date(cloudSyncedAt).getTime() : 0;
+  const localT = localSyncedAt ? new Date(localSyncedAt).getTime() : 0;
+  if (cloudT > localT + 1000) {
+    // Cloud is newer
+    const localLearned = state.vocab.filter(w => w.learned).length;
+    const cloudLearned = (cloud.state.vocab || []).filter(w => w.learned).length;
+    const msg = `云端有更新（${formatTime(new Date(cloudSyncedAt))} · 已学 ${cloudLearned} 个）` +
+                `\n本地：${localSyncedAt ? formatTime(new Date(localSyncedAt)) : "未同步"} · 已学 ${localLearned} 个` +
+                `\n\n用云端覆盖本地？`;
+    if (confirm(msg)) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cloud.state));
+      setSyncStatus("ok", "已从云端恢复");
+      setTimeout(() => location.reload(), 600);
+      return;
+    } else {
+      setSyncStatus("warn", "本地（云端有新版未导入）");
+    }
+  } else {
+    setSyncStatus("ok", "云端最新 " + (cloudSyncedAt ? formatTime(new Date(cloudSyncedAt)) : ""));
+  }
+}
+
+/* ---------- Reward system ---------- */
+function grantWord() {
+  state.today.learnedToday++;
+  state.rewardBuckets.ten++;
+  state.rewardBuckets.twentyFive++;
+  state.rewardBuckets.fifty++;
+  state.rewardBuckets.hundred++;
+  state.rewardBuckets.twoHundred++;
+  if (state.rewardBuckets.ten >= 10)         { state.rewardBuckets.ten -= 10;        state.inv.smallFish++; spawnCreature("smallFish"); toast("+ 一条小鱼"); }
+  if (state.rewardBuckets.twentyFive >= 25)  { state.rewardBuckets.twentyFive -= 25; state.inv.moonFish++;  spawnCreature("moonFish");  toast("+ 一条月亮鱼"); }
+  if (state.rewardBuckets.fifty >= 50)       { state.rewardBuckets.fifty -= 50;      state.inv.clownfish++; spawnCreature("clownfish"); toast("+ 一条小丑鱼"); }
+  if (state.rewardBuckets.hundred >= 100)    { state.rewardBuckets.hundred -= 100;   state.inv.bigFish++;   spawnCreature("bigFish");   toast("+ 一条大鱼"); }
+  if (state.rewardBuckets.twoHundred >= 200) { state.rewardBuckets.twoHundred -= 200;state.inv.turtle++;    spawnCreature("turtle");    toast("+ 一只海龟"); }
+  convertIfNeeded();
+  scheduleSync("learn");
+}
+function grantMinute(min) {
+  state.today.minutes += min;
+  state.timeBuckets.twenty += min;
+  state.timeBuckets.forty += min;
+  state.timeBuckets.sixty += min;
+  while (state.timeBuckets.twenty >= 20) { state.timeBuckets.twenty -= 20; state.inv.seaweed++; spawnCreature("seaweed"); toast("+ 海草"); }
+  while (state.timeBuckets.forty  >= 40) { state.timeBuckets.forty  -= 40; state.inv.anemone++; spawnCreature("anemone"); toast("+ 海葵"); }
+  while (state.timeBuckets.sixty  >= 60) { state.timeBuckets.sixty  -= 60; state.inv.coral++;   spawnCreature("coral");   toast("+ 珊瑚"); }
+  convertIfNeeded();
+  scheduleSync("pomodoro");
+}
+const CONV = [
+  { type: "smallFish", threshold: 50, keep: 25, label: "小鱼" },
+  { type: "moonFish",  threshold: 15, keep: 5,  label: "月亮鱼" },
+  { type: "clownfish", threshold: 10, keep: 5,  label: "小丑鱼" },
+  { type: "bigFish",   threshold: 4,  keep: 1,  label: "大鱼" },
+  { type: "seaweed",   threshold: 20, keep: 5,  label: "海草" },
+  { type: "anemone",   threshold: 10, keep: 5,  label: "海葵" },
+  { type: "coral",     threshold: 8,  keep: 2,  label: "珊瑚" }
+];
+const ICONS = { smallFish: "𓆟", moonFish: "𓆝", clownfish: "🐠", bigFish: "🐟", turtle: "🐢", seaweed: "🌿", anemone: "🌸", coral: "🪸" };
+function convertIfNeeded() {
+  for (const c of CONV) {
+    while (state.inv[c.type] >= c.threshold) {
+      const remove = c.threshold - c.keep;
+      state.inv[c.type] -= remove;
+      removeCreatures(c.type, remove);
+      state.inv.medals.push({ type: c.type, label: c.label, n: remove });
+      toast(c.label + " 凝成奖牌");
+    }
+  }
+  renderInventory(); renderMedals();
+}
+
+/* ---------- LEARNING FLOW ---------- */
+const STEP_LABELS = ["熟悉", "句子配对", "选词成句", "默写单词"];
+function startLearnSession() {
+  const candidates = state.vocab.filter(w => !w.learned);
+  if (candidates.length === 0) { renderLearn(); return; }
+  const queue = candidates.slice(0, 10).map(w => w.id);
+  state.learnSession = { queue, idx: 0, step: 0, mode: "word", groupResults: null };
+  save(); renderLearn();
+}
+function advanceStep() {
+  const s = state.learnSession;
+  const w = state.vocab.find(x => x.id === s.queue[s.idx]);
+  // Skip steps that the word can't support
+  while (true) {
+    s.step++;
+    if (s.step >= 4) break;
+    if (s.step === 1 && (!w.sentences || w.sentences.length < 2)) continue;
+    if (s.step === 2 && (!w.sentences || w.sentences.length < 1)) continue;
+    break;
+  }
+  if (s.step >= 4) {
+    // word complete
+    w.learned = true;
+    grantWord();
+    s.idx++; s.step = 0;
+    if (s.idx >= s.queue.length) {
+      // Enter group test
+      s.mode = "group";
+      s.groupResults = { right: 0, wrong: 0 };
+    }
+  }
+  save(); renderLearn(); updateTopStats();
+}
+
+function renderLearn() {
+  const root = document.getElementById("learn-root");
+  root.innerHTML = "";
+  renderQuickAdd(root);
+  const s = state.learnSession;
+  if (!s) {
+    const unlearned = state.vocab.filter(w => !w.learned && w.enrichmentStatus !== "loading");
+    const total = state.vocab.length;
+    const setSize = 50;
+    const learnedCount = state.vocab.filter(w => w.learned).length;
+    const setIdx = Math.floor(learnedCount / setSize);
+    const setProgress = learnedCount - setIdx * setSize;
+    const sp = document.createElement("div");
+    sp.className = "set-progress";
+    sp.innerHTML = `当前在第 ${setIdx + 1} 套（每套 50 词）· 进度 ${setProgress} / 50 · 词库共 ${total} 个 · 可学 ${unlearned.length} 个`;
+    root.appendChild(sp);
+
+    const hint = document.createElement("div");
+    hint.className = "empty-hint";
+    hint.style.padding = "20px 10px";
+    if (unlearned.length === 0) {
+      hint.innerHTML = `所有词都已学过。<br/>可以"重置已学标记"再过一组，或去复习页练习。`;
+    } else if (unlearned.length < 10) {
+      hint.innerHTML = `还差 ${10 - unlearned.length} 个词凑足一组。<br/>可以先用顶部"速记"输入新词，或直接开始（仅 ${unlearned.length} 个）。`;
+    } else {
+      const preview = unlearned.slice(0, 10).map(w => w.word).join(" · ");
+      hint.innerHTML = `<div style="font-size:11px; letter-spacing:2px; color:var(--ink-soft); margin-bottom:6px;">下一组将包含</div><div style="line-height:1.8;">${preview}</div>`;
+    }
+    root.appendChild(hint);
+
+    const actions = document.createElement("div");
+    actions.className = "step-actions";
+    actions.innerHTML = unlearned.length === 0
+      ? `<button id="btn-reset-learned">重置已学标记</button>`
+      : `<button class="primary" id="btn-start-learn">开始一组（${Math.min(10, unlearned.length)} 词）</button>`;
+    root.appendChild(actions);
+    const resetBtn = document.getElementById("btn-reset-learned");
+    if (resetBtn) resetBtn.addEventListener("click", () => {
+      if (!confirm("把所有词的『已学』标记重置？")) return;
+      for (const w of state.vocab) w.learned = false;
+      save(); renderLearn();
+    });
+    const startBtn = document.getElementById("btn-start-learn");
+    if (startBtn) startBtn.addEventListener("click", startLearnSession);
+    return;
+  }
+  if (s.mode === "word") return renderWordStep();
+  if (s.mode === "group") return renderGroupTest();
+  if (s.mode === "groupCheck") return renderGroupCheck();
+}
+
+function renderQuickAdd(root) {
+  const box = document.createElement("div");
+  box.className = "quick-add";
+  box.innerHTML = `
+    <div class="qa-row">
+      <input id="qa-input" placeholder="速记新词，回车加入" autocomplete="off" autocapitalize="none" autocorrect="off" />
+      <button id="qa-add">+ 加入</button>
+    </div>
+    <div class="qa-status" id="qa-status"></div>
+    <div class="qa-pending" id="qa-pending"></div>
+  `;
+  root.appendChild(box);
+  const input = document.getElementById("qa-input");
+  const status = document.getElementById("qa-status");
+  function doAdd() {
+    const v = input.value.trim();
+    if (!v) return;
+    input.value = "";
+    addQuickWord(v);
+  }
+  input.addEventListener("keydown", e => { if (e.key === "Enter") doAdd(); });
+  document.getElementById("qa-add").addEventListener("click", doAdd);
+  refreshPendingChips();
+  if (window.cowork && window.cowork.askClaude) {
+    status.textContent = "已连接 AI 富化：输入英文词，自动补音标、释义、例句";
+  } else {
+    status.textContent = "AI 富化未连接：只能保存为简单词条";
+  }
+}
+
+function refreshPendingChips() {
+  const wrap = document.getElementById("qa-pending");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  const pending = state.vocab.filter(w =>
+    w.enrichmentStatus === "loading" || w.enrichmentStatus === "failed"
+  ).slice(-12);
+  for (const w of pending) {
+    const chip = document.createElement("span");
+    chip.className = "qa-chip " + (w.enrichmentStatus === "loading" ? "loading" : "failed");
+    chip.innerHTML = w.enrichmentStatus === "loading"
+      ? `<span class="qa-spin"></span>${w.word}`
+      : `⚠ ${w.word}`;
+    chip.title = w.enrichmentStatus === "loading" ? "AI 富化中…" : "富化失败，可手动补充释义";
+    wrap.appendChild(chip);
+  }
+}
+
+async function addQuickWord(rawWord) {
+  const word = rawWord.replace(/\s+/g, " ").trim();
+  if (!word) return;
+  // Duplicate check
+  if (state.vocab.find(w => w.word.toLowerCase() === word.toLowerCase())) {
+    toast("已在词库");
+    return;
+  }
+  const nextId = Math.max(-1, ...state.vocab.map(x => x.id)) + 1;
+  const canEnrich = !!(window.cowork && window.cowork.askClaude);
+  const entry = newVocabEntry({ word }, nextId);
+  entry.enrichmentStatus = canEnrich ? "loading" : "minimal";
+  state.vocab.push(entry);
+  save(); refreshPendingChips(); renderVocabList();
+  if (!canEnrich) {
+    toast("已加入（AI 未连接，可手动补释义）");
+    renderLearn();
+    return;
+  }
+  try {
+    const enriched = await enrichWord(word);
+    if (enriched) {
+      entry.phonetic = enriched.phonetic || "";
+      entry.meaning  = enriched.meaning || "";
+      entry.forms    = enriched.forms || "";
+      entry.context  = enriched.context || "";
+      entry.sentences = Array.isArray(enriched.sentences) ? enriched.sentences : [];
+      entry.enrichmentStatus = "done";
+      toast(word + " 已就绪");
+    } else {
+      entry.enrichmentStatus = "failed";
+      toast(word + " 富化失败，可手动补充");
+    }
+  } catch (e) {
+    entry.enrichmentStatus = "failed";
+    toast(word + " 富化失败：" + (e.message || e));
+  }
+  save(); refreshPendingChips(); renderVocabList(); renderLearn();
+}
+
+async function enrichWord(word) {
+  const prompt = `Given the English word or phrase: "${word}"
+
+Return ONLY a valid JSON object (no prose, no markdown fences). Schema:
+{
+  "phonetic": "IPA in slashes, e.g. /ɪˈfemərəl/",
+  "meaning": "Chinese meaning with part of speech, e.g. adj. 短暂的",
+  "forms": "common variations (tense, comparative, derivatives) separated by '; ' — or '—' if none",
+  "context": "short usage register tag, e.g. literary / academic / casual / philosophical",
+  "sentences": [
+    { "en": "A natural English sentence using the word.", "zh": "对应的中文翻译。" },
+    { "en": "Another contextually different English sentence.", "zh": "另一句中文翻译。" }
+  ]
+}
+
+Sentences must be authentic and varied. Chinese translations should be natural, not literal.`;
+  const result = await window.cowork.askClaude(prompt);
+  // result might be string or {content: [...]} — normalize
+  let text;
+  if (typeof result === "string") text = result;
+  else if (result && typeof result.text === "string") text = result.text;
+  else if (result && result.content && result.content[0] && result.content[0].text) text = result.content[0].text;
+  else text = JSON.stringify(result);
+  // Strip code fences
+  text = text.trim().replace(/^```(?:json)?/, "").replace(/```$/, "").trim();
+  // Find first { and last }
+  const i = text.indexOf("{"), j = text.lastIndexOf("}");
+  if (i < 0 || j < 0) throw new Error("AI 返回未含 JSON");
+  const json = JSON.parse(text.slice(i, j + 1));
+  return json;
+}
+
+function renderWordStep() {
+  const root = document.getElementById("learn-root");
+  const s = state.learnSession;
+  const w = state.vocab.find(x => x.id === s.queue[s.idx]);
+  // header
+  const head = document.createElement("div");
+  head.className = "step-head";
+  head.innerHTML = `<span>第 ${s.idx+1} / ${s.queue.length} 词 · 第 ${s.step+1} 步：${STEP_LABELS[s.step]}</span>
+    <span class="step-dots">${[0,1,2,3].map(i =>
+      `<span class="step-dot ${i<s.step?"done":i===s.step?"cur":""}"></span>`).join("")}</span>`;
+  root.appendChild(head);
+
+  if (s.step === 0) return renderFamiliarize(root, w);
+  if (s.step === 1) return renderMatch(root, w);
+  if (s.step === 2) return renderReconstruct(root, w);
+  if (s.step === 3) return renderDictate(root, w);
+}
+
+function renderFamiliarize(root, w) {
+  const c = document.createElement("div");
+  c.className = "learn-card";
+  c.innerHTML = `
+    <div class="word-head">
+      <button class="speak-btn" id="spk">🔊</button>
+      <span class="word">${w.word}</span>
+      <span class="phonetic">${w.phonetic || ""}</span>
+      ${w.context ? `<span class="context-tag">${w.context}</span>` : ""}
+    </div>
+    ${w.forms ? `<div class="field-label">变形</div><div class="forms">${w.forms}</div>` : ""}
+    <div class="field-label">中文</div>
+    <div class="meaning-zh">${w.meaning}</div>
+    ${w.note ? `<div class="field-label">备注</div><div class="forms" style="line-height:1.7;">${w.note}</div>` : ""}
+    ${w.sentences && w.sentences.length ? `<div class="field-label">例句</div>` : ""}
+    ${(w.sentences || []).map((sen, i) => `
+      <div class="sentence">
+        <div class="en">${i+1}. ${highlightWord(sen.en, w.word)}</div>
+        <div class="zh">${sen.zh}</div>
+      </div>`).join("")}
+  `;
+  root.appendChild(c);
+  const actions = document.createElement("div");
+  actions.className = "step-actions";
+  actions.innerHTML = `<button id="back-learn">退出</button><button class="primary" id="next-step">已熟悉，下一步</button>`;
+  root.appendChild(actions);
+  document.getElementById("spk").addEventListener("click", () => speak(w.word));
+  document.getElementById("next-step").addEventListener("click", advanceStep);
+  document.getElementById("back-learn").addEventListener("click", exitLearnSession);
+}
+function highlightWord(sentence, word) {
+  // case-insensitive, word-boundary safe
+  try {
+    const safe = word.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+    return sentence.replace(new RegExp("\\b" + safe + "\\w*\\b", "gi"), m => `<em>${m}</em>`);
+  } catch (e) { return sentence; }
+}
+
+function renderMatch(root, w) {
+  const sentences = w.sentences.slice(0, 4);
+  const ens = sentences.map((s,i) => ({ text: s.en, key: i, kind: "en" }));
+  const zhs = sentences.map((s,i) => ({ text: s.zh, key: i, kind: "zh" }));
+  shuffle(ens); shuffle(zhs);
+  const c = document.createElement("div");
+  c.className = "learn-card";
+  c.innerHTML = `
+    <div class="word-head">
+      <button class="speak-btn" id="spk">🔊</button>
+      <span class="word">${w.word}</span>
+    </div>
+    <div class="field-label">把两侧句子配成对</div>
+    <div class="match-grid" id="match-grid">
+      <div class="match-col" id="col-en"></div>
+      <div class="match-col" id="col-zh"></div>
+    </div>
+  `;
+  root.appendChild(c);
+  const colEn = c.querySelector("#col-en"), colZh = c.querySelector("#col-zh");
+  for (const e of ens)  { const d=document.createElement("div"); d.className="match-item"; d.dataset.key=e.key; d.dataset.kind="en"; d.textContent=e.text; colEn.appendChild(d); }
+  for (const z of zhs)  { const d=document.createElement("div"); d.className="match-item"; d.dataset.key=z.key; d.dataset.kind="zh"; d.textContent=z.text; colZh.appendChild(d); }
+  let sel = null, pairedCount = 0;
+  function onClick(el) {
+    if (!sel) { sel = el; el.classList.add("selected"); return; }
+    if (sel === el) { el.classList.remove("selected"); sel = null; return; }
+    if (sel.dataset.kind === el.dataset.kind) {
+      sel.classList.remove("selected"); sel = el; el.classList.add("selected"); return;
+    }
+    // try pair
+    if (sel.dataset.key === el.dataset.key) {
+      sel.classList.remove("selected"); sel.classList.add("paired");
+      el.classList.add("paired"); sel = null;
+      pairedCount++;
+      if (pairedCount === sentences.length) {
+        setTimeout(() => advanceStep(), 400);
+      }
+    } else {
+      const a = sel, b = el;
+      a.classList.add("wrong"); b.classList.add("wrong");
+      setTimeout(() => { a.classList.remove("wrong","selected"); b.classList.remove("wrong"); }, 400);
+      sel = null;
+    }
+  }
+  c.querySelectorAll(".match-item").forEach(el => el.addEventListener("click", () => onClick(el)));
+  document.getElementById("spk").addEventListener("click", () => speak(w.word));
+  const actions = document.createElement("div");
+  actions.className = "step-actions";
+  actions.innerHTML = `<button id="back-learn">退出</button><button id="skip-step">跳过</button>`;
+  root.appendChild(actions);
+  document.getElementById("skip-step").addEventListener("click", advanceStep);
+  document.getElementById("back-learn").addEventListener("click", exitLearnSession);
+}
+
+function tokenize(en) {
+  // Whitespace-separated chunks; punctuation stays attached to its word
+  return en.split(/\s+/).filter(Boolean);
+}
+function normToken(t) { return t.replace(/[^a-zA-Z']/g, "").toLowerCase(); }
+
+function renderReconstruct(root, w) {
+  const c = document.createElement("div");
+  c.className = "learn-card";
+  c.innerHTML = `
+    <div class="word-head">
+      <button class="speak-btn" id="spk">🔊</button>
+      <span class="word">${w.word}</span>
+    </div>
+    <div class="field-label">用上面的词，按中文意思拼出英文</div>
+    <div class="word-bag" id="bag"></div>
+    <div id="recon-area"></div>
+  `;
+  root.appendChild(c);
+
+  // Build slots & bag
+  const sentences = w.sentences;
+  const allTokens = [];
+  const sentenceTokens = sentences.map(s => {
+    const toks = tokenize(s.en);
+    const startIdx = allTokens.length;
+    for (const t of toks) allTokens.push(t);
+    return { toks, startIdx };
+  });
+
+  // Shuffled bag
+  const bagOrder = allTokens.map((t,i) => ({ t, i }));
+  shuffle(bagOrder);
+  const bag = c.querySelector("#bag");
+  const reconArea = c.querySelector("#recon-area");
+
+  // Slots are flat over all tokens
+  const slotEls = [];
+  const filled = new Array(allTokens.length).fill(null);  // index into bag pos
+
+  sentenceTokens.forEach((st, si) => {
+    const line = document.createElement("div");
+    line.className = "recon-line";
+    const zh = document.createElement("div");
+    zh.className = "zh"; zh.textContent = sentences[si].zh;
+    line.appendChild(zh);
+    const slots = document.createElement("div");
+    slots.className = "recon-slots";
+    for (let j = 0; j < st.toks.length; j++) {
+      const slot = document.createElement("span");
+      slot.className = "recon-slot";
+      slot.dataset.idx = st.startIdx + j;
+      slots.appendChild(slot);
+      slotEls.push(slot);
+    }
+    line.appendChild(slots);
+    reconArea.appendChild(line);
+  });
+
+  // bag elements
+  const bagEls = [];
+  bagOrder.forEach((bo, bi) => {
+    const el = document.createElement("span");
+    el.className = "bag-word";
+    el.textContent = bo.t;
+    el.dataset.bi = bi;
+    bag.appendChild(el);
+    bagEls.push(el);
+  });
+
+  function nextEmptySlot() { return slotEls.find(s => !s.classList.contains("filled")); }
+
+  bagEls.forEach(el => el.addEventListener("click", () => {
+    if (el.classList.contains("used")) return;
+    const slot = nextEmptySlot();
+    if (!slot) return;
+    slot.textContent = el.textContent;
+    slot.classList.add("filled");
+    slot.dataset.bi = el.dataset.bi;
+    el.classList.add("used");
+  }));
+  slotEls.forEach(slot => slot.addEventListener("click", () => {
+    if (!slot.classList.contains("filled")) return;
+    const bi = slot.dataset.bi;
+    const el = bagEls[+bi];
+    el.classList.remove("used");
+    slot.textContent = ""; slot.classList.remove("filled","wrong");
+    delete slot.dataset.bi;
+  }));
+
+  const actions = document.createElement("div");
+  actions.className = "step-actions";
+  actions.innerHTML = `<button id="back-learn">退出</button><button id="recon-check" class="primary">检查</button>`;
+  root.appendChild(actions);
+  document.getElementById("spk").addEventListener("click", () => speak(w.word));
+  document.getElementById("back-learn").addEventListener("click", exitLearnSession);
+  document.getElementById("recon-check").addEventListener("click", () => {
+    let allRight = true;
+    slotEls.forEach((slot, i) => {
+      const expected = allTokens[i];
+      const got = slot.textContent || "";
+      if (normToken(got) !== normToken(expected)) {
+        slot.classList.add("wrong");
+        allRight = false;
+      }
+    });
+    if (allRight) { setTimeout(() => advanceStep(), 300); }
+    else { toast("有词不对，再看看"); }
+  });
+}
+
+function renderDictate(root, w) {
+  const c = document.createElement("div");
+  c.className = "learn-card";
+  c.innerHTML = `
+    <div class="word-head">
+      <button class="speak-btn" id="spk">🔊</button>
+      <span class="phonetic">${w.phonetic || ""}</span>
+      ${w.context ? `<span class="context-tag">${w.context}</span>` : ""}
+    </div>
+    <div class="field-label">听音 + 看义，默写单词</div>
+    <div class="meaning-zh">${w.meaning}</div>
+    <input class="dictate-input" id="dict" autocomplete="off" autocapitalize="none" autocorrect="off" placeholder="拼写"/>
+    <div class="dictate-feedback" id="dfb">回车提交</div>
+  `;
+  root.appendChild(c);
+  const actions = document.createElement("div");
+  actions.className = "step-actions";
+  actions.innerHTML = `<button id="back-learn">退出</button><button id="dict-submit" class="primary">提交</button>`;
+  root.appendChild(actions);
+  const input = document.getElementById("dict");
+  setTimeout(() => input.focus(), 60);
+  function submit() {
+    const v = input.value.trim();
+    if (v.toLowerCase() === w.word.toLowerCase()) {
+      document.getElementById("dfb").textContent = "✓ 正确";
+      setTimeout(() => advanceStep(), 250);
+    } else {
+      document.getElementById("dfb").textContent = "再试一次（提示首字母：" + w.word[0] + "）";
+      input.value = ""; input.focus();
+    }
+  }
+  input.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+  document.getElementById("dict-submit").addEventListener("click", submit);
+  document.getElementById("spk").addEventListener("click", () => speak(w.word));
+  document.getElementById("back-learn").addEventListener("click", exitLearnSession);
+  speak(w.word);
+}
+
+function renderGroupTest() {
+  const root = document.getElementById("learn-root");
+  const s = state.learnSession;
+  const words = s.queue.map(id => state.vocab.find(x => x.id === id));
+  const shuffled = [...words]; shuffle(shuffled);
+  const c = document.createElement("div");
+  c.className = "learn-card";
+  c.innerHTML = `
+    <div class="field-label">本组拼配测验：把左侧英文拖到右侧对应中文</div>
+    <div class="group-test-grid">
+      <div class="gt-bag" id="gt-bag"></div>
+      <div id="gt-rows"></div>
+    </div>
+  `;
+  root.appendChild(c);
+  const bag = c.querySelector("#gt-bag");
+  const rows = c.querySelector("#gt-rows");
+  shuffled.forEach(w => {
+    const el = document.createElement("span");
+    el.className = "gt-word";
+    el.textContent = w.word; el.dataset.word = w.word;
+    bag.appendChild(el);
+  });
+  // rows in original learn order
+  words.forEach(w => {
+    const row = document.createElement("div");
+    row.className = "gt-row";
+    row.innerHTML = `<div class="slot" data-expect="${w.word}"></div><div class="zh">${w.meaning}</div>`;
+    rows.appendChild(row);
+  });
+  let selectedBagEl = null;
+  bag.querySelectorAll(".gt-word").forEach(el => el.addEventListener("click", () => {
+    if (el.classList.contains("used")) return;
+    if (selectedBagEl) selectedBagEl.style.outline = "";
+    selectedBagEl = el; el.style.outline = "2px solid var(--accent)";
+  }));
+  rows.querySelectorAll(".slot").forEach(slot => slot.addEventListener("click", () => {
+    if (slot.classList.contains("filled")) {
+      // return to bag
+      const wordText = slot.textContent;
+      const bagEl = [...bag.children].find(el => el.dataset.word === wordText);
+      if (bagEl) bagEl.classList.remove("used");
+      slot.textContent = ""; slot.classList.remove("filled","right","wrong");
+      return;
+    }
+    if (!selectedBagEl) return;
+    slot.textContent = selectedBagEl.textContent;
+    slot.classList.add("filled");
+    selectedBagEl.classList.add("used");
+    selectedBagEl.style.outline = ""; selectedBagEl = null;
+  }));
+  const actions = document.createElement("div");
+  actions.className = "step-actions";
+  actions.innerHTML = `<button id="gt-cancel">放弃</button><button id="gt-check" class="primary">交卷</button>`;
+  root.appendChild(actions);
+  document.getElementById("gt-cancel").addEventListener("click", exitLearnSession);
+  document.getElementById("gt-check").addEventListener("click", () => {
+    let right = 0;
+    rows.querySelectorAll(".slot").forEach(slot => {
+      const expect = slot.dataset.expect;
+      const got = slot.textContent.trim().toLowerCase();
+      if (got === expect.toLowerCase()) { slot.classList.add("right"); right++; }
+      else slot.classList.add("wrong");
+    });
+    const acc = right / words.length;
+    setTimeout(() => {
+      toast(`拼配正确率 ${(acc*100).toFixed(0)}% · 进入 3 句默写`);
+      state.today.attempts += words.length;
+      state.today.correct += right;
+      // Build group check pool: pick up to 3 sentences from this group's words
+      const pool = [];
+      for (const w of words) {
+        if (w.sentences && w.sentences.length) {
+          for (const s of w.sentences) pool.push({ wordId: w.id, sentence: s });
+        }
+      }
+      shuffle(pool);
+      const checkPool = pool.slice(0, 3);
+      if (checkPool.length === 0) {
+        state.learnSession = null;
+        save(); renderLearn(); updateTopStats(); renderInventory();
+        return;
+      }
+      state.learnSession.mode = "groupCheck";
+      state.learnSession.checkPool = checkPool;
+      state.learnSession.checkIdx = 0;
+      state.learnSession.checkResults = { right: 0, wrong: 0 };
+      save(); renderLearn();
+    }, 800);
+  });
+}
+
+function renderGroupCheck() {
+  const root = document.getElementById("learn-root");
+  root.innerHTML = "";
+  renderQuickAdd(root);
+  const s = state.learnSession;
+  const item = s.checkPool[s.checkIdx];
+  const w = state.vocab.find(x => x.id === item.wordId);
+  const sentence = item.sentence;
+  // Blank target word in sentence
+  const safe = w.word.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+  const blankedEn = sentence.en.replace(
+    new RegExp("\\b" + safe + "\\w*\\b", "i"),
+    `<span class="blank">_____</span>`
+  );
+  const head = document.createElement("div");
+  head.className = "step-head";
+  head.innerHTML = `<span>整组默写 · 第 ${s.checkIdx + 1} / ${s.checkPool.length} 句</span>
+    <span class="mode-tag">填空</span>`;
+  root.appendChild(head);
+  const card = document.createElement("div");
+  card.className = "fill-card";
+  card.innerHTML = `
+    <div class="fill-zh">${sentence.zh}</div>
+    <div class="fill-en">${blankedEn}</div>
+    <input class="fill-input" id="gc-input" placeholder="填入对应的英文单词" autocomplete="off" autocapitalize="none" autocorrect="off"/>
+    <div class="fill-feedback" id="gc-fb">回车提交</div>
+  `;
+  root.appendChild(card);
+  const actions = document.createElement("div");
+  actions.className = "step-actions";
+  actions.innerHTML = `<button id="gc-skip">跳过</button><button class="primary" id="gc-submit">提交</button>`;
+  root.appendChild(actions);
+  const input = document.getElementById("gc-input");
+  setTimeout(() => input.focus(), 60);
+  function next(right) {
+    if (right) s.checkResults.right++;
+    else s.checkResults.wrong++;
+    s.checkIdx++;
+    if (s.checkIdx >= s.checkPool.length) {
+      // session end
+      state.today.attempts += s.checkPool.length;
+      state.today.correct += s.checkResults.right;
+      const r = s.checkResults.right, total = s.checkPool.length;
+      toast(`整组默写：${r}/${total} 通过`);
+      state.learnSession = null;
+      save(); renderLearn(); updateTopStats(); renderInventory();
+    } else {
+      save(); renderLearn();
+    }
+  }
+  function submit() {
+    const v = input.value.trim();
+    if (!v) return;
+    const match = sentence.en.match(new RegExp("\\b" + safe + "\\w*\\b", "i"));
+    const expected = match ? match[0] : w.word;
+    const ok = normToken(v) === normToken(expected);
+    const fb = document.getElementById("gc-fb");
+    if (ok) {
+      fb.textContent = "✓ 正确"; fb.className = "fill-feedback right";
+      setTimeout(() => next(true), 350);
+    } else {
+      fb.textContent = `× 正确答案：${expected}`; fb.className = "fill-feedback wrong";
+      setTimeout(() => next(false), 1200);
+    }
+  }
+  input.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+  document.getElementById("gc-submit").addEventListener("click", submit);
+  document.getElementById("gc-skip").addEventListener("click", () => next(false));
+}
+
+function exitLearnSession() {
+  if (state.learnSession) {
+    if (!confirm("退出本组学习？已完成的词会保留为已学。")) return;
+  }
+  state.learnSession = null; save(); renderLearn();
+}
+
+function shuffle(a) { for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+/* ---------- REVIEW (sentence fill-in / dictation) ---------- */
+let currentReviewItem = null; // { word, sentence, mode: 'fillin'|'dictation'|'flashcard', chancesUsed, expected }
+
+function pickReviewItem() {
+  const learned = state.vocab.filter(w => w.learned);
+  if (learned.length === 0) return null;
+  const weights = learned.map(w => Math.max(1, 5 - w.known) + w.miss * 2);
+  const total = weights.reduce((a,b)=>a+b,0);
+  let r = Math.random()*total, word = learned[0];
+  for (let i = 0; i < weights.length; i++) {
+    r -= weights[i];
+    if (r <= 0) { word = learned[i]; break; }
+  }
+  let mode = "flashcard", sentence = null, expected = "";
+  if (word.sentences && word.sentences.length) {
+    sentence = word.sentences[Math.floor(Math.random() * word.sentences.length)];
+    if (word.mastered) {
+      mode = "dictation";
+      expected = sentence.en;
+    } else {
+      mode = "fillin";
+      const safe = word.word.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+      const m = sentence.en.match(new RegExp("\\b" + safe + "\\w*\\b", "i"));
+      expected = m ? m[0] : word.word;
+    }
+  }
+  return { word, sentence, mode, chancesUsed: 0, expected };
+}
+
+function renderReview() {
+  const root = document.getElementById("review-root");
+  root.innerHTML = "";
+  const learned = state.vocab.filter(w => w.learned);
+  if (learned.length === 0) {
+    root.innerHTML = `<div class="empty-hint">先去『学习』完成一组词，再来复习。</div>`;
+    return;
+  }
+  if (!currentReviewItem) currentReviewItem = pickReviewItem();
+  if (currentReviewItem.mode === "fillin") return renderReviewFillin();
+  if (currentReviewItem.mode === "dictation") return renderReviewDictation();
+  return renderReviewFlashcard();
+}
+
+function renderReviewFillin() {
+  const root = document.getElementById("review-root");
+  const item = currentReviewItem;
+  const w = item.word;
+  const safe = w.word.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+  const blanked = item.sentence.en.replace(
+    new RegExp("\\b" + safe + "\\w*\\b", "i"),
+    `<span class="blank">_____</span>`
+  );
+  const head = document.createElement("div");
+  head.className = "step-head";
+  head.innerHTML = `<span>看中文 · 填关键英文词</span><span class="mode-tag">填空</span>`;
+  root.appendChild(head);
+  const card = document.createElement("div");
+  card.className = "fill-card";
+  card.innerHTML = `
+    <div class="fill-zh">${item.sentence.zh}</div>
+    <div class="fill-en">${blanked}</div>
+    <input class="fill-input" id="rv-input" placeholder="填入英文" autocomplete="off" autocapitalize="none" autocorrect="off"/>
+    <div class="fill-feedback" id="rv-fb">回车提交 · 每题 3 次机会</div>
+    <div class="chances" id="rv-ch"></div>
+  `;
+  root.appendChild(card);
+  renderChances(3 - item.chancesUsed);
+  const actions = document.createElement("div");
+  actions.className = "step-actions";
+  actions.innerHTML = `<button id="rv-skip">放弃此题</button><button class="primary" id="rv-submit">提交</button>`;
+  root.appendChild(actions);
+  appendReviewMeta(root);
+  const input = document.getElementById("rv-input");
+  setTimeout(() => input.focus(), 60);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") submitFillin(); });
+  document.getElementById("rv-submit").addEventListener("click", submitFillin);
+  document.getElementById("rv-skip").addEventListener("click", () => finishReviewItem(false, "已放弃"));
+}
+
+function renderChances(left) {
+  const ch = document.getElementById("rv-ch"); if (!ch) return;
+  ch.innerHTML = `剩余机会 ${left}：`;
+  for (let i = 0; i < 3; i++) {
+    const d = document.createElement("span"); d.className = "chance-dot" + (i >= left ? " used" : "");
+    ch.appendChild(d);
+  }
+}
+
+function submitFillin() {
+  const item = currentReviewItem;
+  const input = document.getElementById("rv-input");
+  const v = (input.value || "").trim();
+  if (!v) return;
+  const fb = document.getElementById("rv-fb");
+  if (normToken(v) === normToken(item.expected)) {
+    fb.textContent = "✓ 正确"; fb.className = "fill-feedback right";
+    setTimeout(() => finishReviewItem(true, ""), 400);
+  } else {
+    item.chancesUsed++;
+    if (item.chancesUsed >= 3) {
+      fb.textContent = `× 三次未中。正确答案：${item.expected}`;
+      fb.className = "fill-feedback wrong";
+      setTimeout(() => finishReviewItem(false, ""), 1400);
+    } else {
+      fb.textContent = `× 再试一次（提示首字母：${item.expected[0]}）`;
+      fb.className = "fill-feedback wrong";
+      input.value = ""; input.focus();
+      renderChances(3 - item.chancesUsed);
+    }
+  }
+}
+
+function renderReviewDictation() {
+  const root = document.getElementById("review-root");
+  const item = currentReviewItem;
+  const head = document.createElement("div");
+  head.className = "step-head";
+  head.innerHTML = `<span>看中文 · 默写整句 <span class="mastery-badge">已掌握</span></span><span class="mode-tag">默写</span>`;
+  root.appendChild(head);
+  const card = document.createElement("div");
+  card.className = "fill-card dictation-area";
+  card.innerHTML = `
+    <div class="fill-zh" style="font-size:15px;">${item.sentence.zh}</div>
+    <textarea id="rv-dict" placeholder="写出对应的英文整句"></textarea>
+    <div class="fill-feedback" id="rv-fb">回车提交</div>
+    <div class="dict-diff" id="rv-diff"></div>
+  `;
+  root.appendChild(card);
+  const actions = document.createElement("div");
+  actions.className = "step-actions";
+  actions.innerHTML = `<button id="rv-skip">跳过</button><button class="primary" id="rv-submit">提交</button>`;
+  root.appendChild(actions);
+  appendReviewMeta(root);
+  const ta = document.getElementById("rv-dict");
+  setTimeout(() => ta.focus(), 60);
+  ta.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submitDictation(); });
+  document.getElementById("rv-submit").addEventListener("click", submitDictation);
+  document.getElementById("rv-skip").addEventListener("click", () => finishReviewItem(false, ""));
+}
+
+function submitDictation() {
+  const item = currentReviewItem;
+  const ta = document.getElementById("rv-dict");
+  const v = (ta.value || "").trim();
+  if (!v) return;
+  const fb = document.getElementById("rv-fb");
+  const diffEl = document.getElementById("rv-diff");
+  const expWords = item.sentence.en.split(/\s+/).filter(Boolean);
+  const gotWords = v.split(/\s+/).filter(Boolean);
+  const len = Math.max(expWords.length, gotWords.length);
+  let rightCount = 0;
+  const diffHtml = [];
+  for (let i = 0; i < len; i++) {
+    const e = expWords[i], g = gotWords[i];
+    if (!e) { diffHtml.push(`<span class="wrong">${escapeHtml(g)}</span>`); continue; }
+    if (!g) { diffHtml.push(`<span class="missing">${escapeHtml(e)}</span>`); continue; }
+    if (normToken(g) === normToken(e)) { diffHtml.push(`<span class="right">${escapeHtml(g)}</span>`); rightCount++; }
+    else { diffHtml.push(`<span class="wrong">${escapeHtml(g)}</span> <span class="missing">${escapeHtml(e)}</span>`); }
+  }
+  diffEl.innerHTML = diffHtml.join(" ");
+  const acc = rightCount / expWords.length;
+  if (acc >= 0.9) {
+    fb.textContent = `✓ ${(acc*100).toFixed(0)}% 通过`;
+    fb.className = "fill-feedback right";
+    setTimeout(() => finishReviewItem(true, ""), 1400);
+  } else {
+    item.chancesUsed++;
+    if (item.chancesUsed >= 3) {
+      fb.textContent = `× 三次未达 90%。正确：${item.sentence.en}`;
+      fb.className = "fill-feedback wrong";
+      setTimeout(() => finishReviewItem(false, ""), 2000);
+    } else {
+      fb.textContent = `× 再试一次（${rightCount} / ${expWords.length} 词对）`;
+      fb.className = "fill-feedback wrong";
+    }
+  }
+}
+
+function renderReviewFlashcard() {
+  // For words without sentences — fall back to old flashcard mode
+  const root = document.getElementById("review-root");
+  const item = currentReviewItem;
+  const w = item.word;
+  const head = document.createElement("div");
+  head.className = "step-head";
+  head.innerHTML = `<span>无例句词：闪卡模式</span><span class="mode-tag">闪卡</span>`;
+  root.appendChild(head);
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `<div class="hint">点击翻面</div><div class="word">${w.word}</div><div class="meaning">${w.meaning || "(无释义)"}</div>`;
+  card.addEventListener("click", () => card.classList.toggle("revealed"));
+  root.appendChild(card);
+  const actions = document.createElement("div");
+  actions.className = "actions";
+  actions.innerHTML = `<button id="rv-forgot">忘记</button><button class="remember" id="rv-rem">记得</button>`;
+  root.appendChild(actions);
+  appendReviewMeta(root);
+  document.getElementById("rv-rem").addEventListener("click", () => finishReviewItem(true, ""));
+  document.getElementById("rv-forgot").addEventListener("click", () => finishReviewItem(false, ""));
+}
+
+function appendReviewMeta(root) {
+  const meta = document.createElement("div");
+  meta.className = "session-meta";
+  const a = state.reviewSession.attempts;
+  const rate = a ? ((a - state.reviewSession.correct)/a*100).toFixed(0) : 0;
+  meta.innerHTML = `<span>本次：${state.reviewSession.correct} / ${a}</span><span>错误率 ${rate}%</span>`;
+  root.appendChild(meta);
+  const endBtn = document.createElement("button");
+  endBtn.className = "end-session";
+  endBtn.textContent = "结束本次会话并结算";
+  endBtn.addEventListener("click", endReviewSession);
+  root.appendChild(endBtn);
+}
+
+function finishReviewItem(correct, msg) {
+  if (!currentReviewItem) return;
+  state.reviewSession.attempts++;
+  state.today.attempts++;
+  if (correct) {
+    state.reviewSession.correct++;
+    state.today.correct++;
+    currentReviewItem.word.known++;
+  } else {
+    currentReviewItem.word.miss++;
+  }
+  if (msg) toast(msg);
+  currentReviewItem = null;
+  save(); updateTopStats(); renderReview();
+}
+
+function endReviewSession() {
+  const att = state.reviewSession.attempts;
+  if (att === 0) { toast("本次还未开始"); return; }
+  const wrong = att - state.reviewSession.correct;
+  const rate = wrong / att;
+  let msg = `本次 ${att} 题，错误率 ${(rate*100).toFixed(0)}%。`;
+  const losses = [];
+  function take(type, label) {
+    if (state.inv[type] > 0) { state.inv[type]--; removeCreatures(type, 1); losses.push("- 1 " + label); }
+  }
+  if (rate > 0.20) take("smallFish","小鱼");
+  if (rate > 0.35) take("moonFish","月亮鱼");
+  if (rate > 0.40) take("clownfish","小丑鱼");
+  if (rate > 0.60) take("bigFish","大鱼");
+  msg += losses.length ? " " + losses.join("，") : " 全部留缸";
+  toast(msg);
+  state.reviewSession = { attempts: 0, correct: 0 };
+  currentReviewItem = null;
+  checkAndUpdateMastery();
+  save(); renderReview(); renderInventory();
+  scheduleSync("review-end");
+}
+
+function checkAndUpdateMastery() {
+  const setSize = 50;
+  const sets = {};
+  state.vocab.forEach((w, i) => {
+    const si = Math.floor(i / setSize);
+    if (!sets[si]) sets[si] = [];
+    sets[si].push(w);
+  });
+  for (const si in sets) {
+    const ws = sets[si];
+    if (ws.length < setSize) continue;
+    if (!ws.every(w => w.learned)) continue;
+    const totalKnown = ws.reduce((s,w) => s + w.known, 0);
+    const totalMiss = ws.reduce((s,w) => s + w.miss, 0);
+    const totalAtt = totalKnown + totalMiss;
+    if (totalAtt < setSize) continue;
+    const acc = totalKnown / totalAtt;
+    if (acc >= 0.9 && !ws.every(w => w.mastered)) {
+      for (const w of ws) w.mastered = true;
+      toast(`第 ${+si + 1} 套词已掌握，复习升级为整句默写`);
+    }
+  }
+}
+
+function escapeHtml(s) {
+  return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+/* ---------- Stats / inventory / medals ---------- */
+function updateTopStats() {
+  document.getElementById("s-learned").textContent = state.today.learnedToday;
+  document.getElementById("s-words").textContent = state.vocab.filter(w => w.learned).length;
+  const a = state.today.attempts;
+  document.getElementById("s-acc").textContent = a ? Math.round(state.today.correct/a*100) + "%" : "—";
+  document.getElementById("s-min").textContent = Math.round(state.today.minutes);
+}
+function renderInventory() {
+  const items = [
+    ["smallFish","小鱼"],["moonFish","月亮鱼"],["clownfish","小丑鱼"],["bigFish","大鱼"],
+    ["turtle","海龟"],["seaweed","海草"],["anemone","海葵"],["coral","珊瑚"]
+  ];
+  const g = document.getElementById("inv-grid"); g.innerHTML = "";
+  for (const [k,l] of items) {
+    const d = document.createElement("div"); d.className = "inv-item";
+    d.innerHTML = `<div class="ic">${ICONS[k]}</div><div class="num">${state.inv[k]}</div><div class="lbl">${l}</div>`;
+    g.appendChild(d);
+  }
+}
+function renderMedals() {
+  const shelf = document.getElementById("medal-shelf"); shelf.innerHTML = "";
+  for (const m of state.inv.medals) {
+    const el = document.createElement("div"); el.className = "medal";
+    el.title = `${m.label} × ${m.n}`; el.textContent = ICONS[m.type] || "✦";
+    shelf.appendChild(el);
+  }
+}
+function renderVocabList() {
+  const el = document.getElementById("vocab-list"); el.innerHTML = "";
+  for (const w of state.vocab.slice(0, 200)) {
+    const d = document.createElement("div");
+    const tag = w.learned ? "✓" : "·";
+    d.innerHTML = `<span>${tag} ${w.word}</span><span style="color:var(--ink-soft)">✓${w.known} ✗${w.miss}</span>`;
+    el.appendChild(d);
+  }
+  if (state.vocab.length > 200) {
+    const d = document.createElement("div"); d.textContent = `…还有 ${state.vocab.length - 200} 个未列出`;
+    el.appendChild(d);
+  }
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll(".tabs button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".pane").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelector(`.pane[data-pane="${btn.dataset.tab}"]`).classList.add("active");
+    if (btn.dataset.tab === "review") renderReview();
+    if (btn.dataset.tab === "learn") renderLearn();
+  });
+});
+// (Review keyboard shortcuts handled inline per mode via input keydown)
+
+/* ---------- Pomodoro ---------- */
+let pomDur = 25 * 60, pomRemain = pomDur, pomRunning = false, pomT = null;
+function updatePomDisplay() {
+  const m = Math.floor(pomRemain / 60), s = pomRemain % 60;
+  document.getElementById("timer").textContent = String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+  document.getElementById("pom-stat").textContent = `今日累计 ${Math.round(state.today.minutes)} 分钟`;
+}
+function pomTick() {
+  pomRemain--; updatePomDisplay();
+  if (pomRemain <= 0) {
+    clearInterval(pomT); pomRunning = false;
+    document.getElementById("pom-start").textContent = "开始";
+    grantMinute(25); updateTopStats(); save();
+    toast("一个番茄已成");
+    pomRemain = pomDur; updatePomDisplay();
+  }
+}
+document.getElementById("pom-start").addEventListener("click", () => {
+  if (pomRunning) {
+    clearInterval(pomT); pomRunning = false;
+    document.getElementById("pom-start").textContent = "继续";
+  } else {
+    pomT = setInterval(pomTick, 1000); pomRunning = true;
+    document.getElementById("pom-start").textContent = "暂停";
+  }
+});
+document.getElementById("pom-reset").addEventListener("click", () => {
+  clearInterval(pomT); pomRunning = false; pomRemain = pomDur;
+  document.getElementById("pom-start").textContent = "开始"; updatePomDisplay();
+});
+
+/* ---------- Vocab tab ---------- */
+function parseVocabSimple(text) {
+  return text.split("\n").map(l => l.trim()).filter(Boolean).map(line => {
+    const parts = line.split("|").map(x => x.trim());
+    return { word: parts[0], meaning: parts[1] || "" };
+  }).filter(x => x.word);
+}
+function parseVocab(text) {
+  const t = text.trim();
+  if (t.startsWith("[") || t.startsWith("{")) {
+    try {
+      const j = JSON.parse(t);
+      return (Array.isArray(j) ? j : [j]).filter(x => x && x.word);
+    } catch (e) { toast("JSON 格式有误"); return []; }
+  }
+  return parseVocabSimple(t);
+}
+document.getElementById("vocab-example").addEventListener("click", () => {
+  document.getElementById("vocab-input").value = VOCAB_JSON_EXAMPLE;
+});
+document.getElementById("vocab-add").addEventListener("click", () => {
+  const arr = parseVocab(document.getElementById("vocab-input").value);
+  let nextId = Math.max(-1, ...state.vocab.map(x => x.id)) + 1;
+  for (const w of arr) state.vocab.push(newVocabEntry(w, nextId++));
+  document.getElementById("vocab-input").value = "";
+  save(); renderVocabList(); renderLearn(); toast(`+ ${arr.length} 个词`);
+});
+document.getElementById("vocab-replace").addEventListener("click", () => {
+  const arr = parseVocab(document.getElementById("vocab-input").value);
+  if (!arr.length) { toast("空文本"); return; }
+  if (!confirm(`用 ${arr.length} 个新词替换全部？（已学进度会清空）`)) return;
+  let nextId = 0;
+  state.vocab = arr.map(w => newVocabEntry(w, nextId++));
+  document.getElementById("vocab-input").value = "";
+  save(); renderVocabList(); renderLearn(); toast("词库已替换");
+});
+document.getElementById("vocab-reset").addEventListener("click", () => {
+  if (!confirm("清空全部数据（鱼缸、奖牌、词库进度）？")) return;
+  localStorage.removeItem(STORAGE_KEY); location.reload();
+});
+
+document.getElementById("sync-pill").addEventListener("click", () => {
+  if (!COWORK_MODE && !accessToken) {
+    // Trigger login flow
+    handleGoogleLogin();
+    return;
+  }
+  toast("同步中…"); syncToCloud("manual-pill");
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden" && syncStatus === "warn") {
+    if (syncTimer) { clearTimeout(syncTimer); syncTimer = null; }
+    syncToCloud("hide");
+  }
+});
+
+async function handleGoogleLogin() {
+  if (!GOOGLE_CLIENT_ID) { toast("先设置 Google Client ID"); return; }
+  try {
+    if (!gisReady) await initOAuth();
+    setSyncStatus("busy", "登录中…");
+    await requestToken(true);
+    toast("已登录 Google");
+    renderCloudPanel();
+    setSyncStatus("ok", "已登录");
+    // Try restoring from cloud
+    setTimeout(bootCloudSync, 200);
+  } catch (e) {
+    setSyncStatus("err", "登录失败");
+    toast("登录失败：" + (e.message || e));
+  }
+}
+
+function handleGoogleLogout() {
+  accessToken = null; tokenExpiresAt = 0;
+  sessionStorage.removeItem("cihai.oauthToken");
+  setSyncStatus("warn", "已退出");
+  renderCloudPanel();
+}
+
+function setClientId(id) {
+  GOOGLE_CLIENT_ID = (id || "").trim();
+  if (GOOGLE_CLIENT_ID) localStorage.setItem(CLIENT_ID_KEY, GOOGLE_CLIENT_ID);
+  else localStorage.removeItem(CLIENT_ID_KEY);
+  tokenClient = null; gisReady = false;
+  toast(GOOGLE_CLIENT_ID ? "Client ID 已保存" : "Client ID 已清除");
+  renderCloudPanel();
+}
+
+function exportLocalJson() {
+  const payload = JSON.stringify(state, null, 2);
+  const blob = new Blob([payload], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const d = new Date();
+  const stamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  a.href = url;
+  a.download = `cihai-state-${stamp}.json`;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+  toast("已导出本地进度");
+}
+
+function importLocalJson(file) {
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const j = JSON.parse(r.result);
+      if (!j || !Array.isArray(j.vocab) || !j.inv) { toast("不是有效的词海数据"); return; }
+      if (!confirm("即将用导入文件替换本地全部进度，继续？")) return;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(j));
+      toast("已导入，重新加载…");
+      setTimeout(() => location.reload(), 600);
+    } catch (err) { toast("解析失败：" + (err.message || err)); }
+  };
+  r.onerror = () => toast("文件读取失败");
+  r.readAsText(file);
+}
+
+function renderCloudPanel() {
+  const body = document.getElementById("cloud-panel-body");
+  if (!body) return;
+  const modeBadge = COWORK_MODE
+    ? `<span style="background:#e8efe9;color:var(--ok);padding:2px 8px;border-radius:8px;font-size:10px;">Cowork 模式</span>`
+    : `<span style="background:#efe8df;color:var(--accent-warm);padding:2px 8px;border-radius:8px;font-size:10px;">独立浏览器模式</span>`;
+
+  let oauthHtml = "";
+  if (!COWORK_MODE) {
+    if (!GOOGLE_CLIENT_ID) {
+      oauthHtml = `
+        <div style="font-size:11px; color:var(--ink-soft); margin-top:8px; line-height:1.6;">
+          首次使用：粘贴你的 <strong>Google OAuth Client ID</strong>（在 Google Cloud Console 创建，详见部署指南）。
+        </div>
+        <div class="vocab-row" style="margin-top:6px;">
+          <input id="cp-clientid-input" placeholder="xxx.apps.googleusercontent.com" style="flex:1; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:12px; background:var(--paper);">
+          <button id="cp-clientid-save">保存</button>
+        </div>
+      `;
+    } else if (!accessToken) {
+      const masked = GOOGLE_CLIENT_ID.slice(0, 8) + "…" + GOOGLE_CLIENT_ID.slice(-20);
+      oauthHtml = `
+        <div style="font-size:11px; color:var(--ink-soft); margin-top:8px; line-height:1.6;">
+          Client ID: <code style="font-size:11px;">${masked}</code>
+          · <a href="#" id="cp-clientid-edit" style="color:var(--accent);">修改</a>
+        </div>
+        <div class="vocab-row" style="margin-top:6px;">
+          <button id="cp-login" class="primary" style="background:var(--accent); color:white; border-color:var(--accent);">登录 Google Drive</button>
+        </div>
+      `;
+    } else {
+      oauthHtml = `
+        <div style="font-size:11px; color:var(--ink-soft); margin-top:8px;">
+          已登录 Google · <a href="#" id="cp-logout" style="color:var(--danger);">退出</a>
+          · <a href="#" id="cp-clientid-edit" style="color:var(--accent);">改 Client ID</a>
+        </div>
+      `;
+    }
+  }
+
+  body.innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+      ${modeBadge}
+      <span style="font-size:10px; color:var(--ink-soft); letter-spacing:1px;">Cihai/cihai-state.json</span>
+    </div>
+    ${oauthHtml}
+    <div class="vocab-row" style="margin-top:8px;">
+      <button id="cp-push">立即推到云端</button>
+      <button id="cp-pull">从云端拉取</button>
+    </div>
+    <div class="vocab-row" style="margin-top:6px;">
+      <button id="cp-export">导出 JSON</button>
+      <button id="cp-import-btn">导入 JSON</button>
+      <input type="file" id="cp-import-file" accept=".json,application/json" style="display:none">
+    </div>
+    <div style="font-size:11px; color:var(--ink-soft); margin-top:6px; line-height:1.6;">
+      状态变化进入 8 秒防抖窗口、暂离页面立刻推送。Drive API 不支持覆盖，每次写入是新文件——历史版本在 <code>Cihai</code> 文件夹里累积作为备份，可手动清理。
+    </div>
+  `;
+
+  // Wire events
+  const $ = (id) => body.querySelector("#" + id);
+  if ($("cp-clientid-save")) {
+    $("cp-clientid-save").addEventListener("click", () => setClientId($("cp-clientid-input").value));
+    $("cp-clientid-input").addEventListener("keydown", e => { if (e.key === "Enter") setClientId($("cp-clientid-input").value); });
+  }
+  if ($("cp-clientid-edit")) $("cp-clientid-edit").addEventListener("click", (e) => {
+    e.preventDefault();
+    const v = prompt("新的 Google OAuth Client ID（留空清除）：", GOOGLE_CLIENT_ID);
+    if (v !== null) setClientId(v);
+  });
+  if ($("cp-login")) $("cp-login").addEventListener("click", handleGoogleLogin);
+  if ($("cp-logout")) $("cp-logout").addEventListener("click", (e) => { e.preventDefault(); handleGoogleLogout(); });
+  $("cp-push").addEventListener("click", () => { toast("立即同步…"); syncToCloud("manual"); });
+  $("cp-pull").addEventListener("click", async () => {
+    toast("拉取云端…");
+    const cloud = await loadFromCloud();
+    if (!cloud) { toast("云端无数据或拉取失败"); return; }
+    if (!confirm("将用云端版本覆盖本地全部进度，继续？")) { setSyncStatus("warn", "已取消"); return; }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cloud.state));
+    toast("已拉取，重新加载…");
+    setTimeout(() => location.reload(), 600);
+  });
+  $("cp-export").addEventListener("click", exportLocalJson);
+  $("cp-import-btn").addEventListener("click", () => $("cp-import-file").click());
+  $("cp-import-file").addEventListener("change", (e) => {
+    const f = e.target.files[0]; if (f) importLocalJson(f);
+    e.target.value = "";
+  });
+}
+
+/* ---------- Cosmetics ---------- */
+function readFile(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result); r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+document.getElementById("bg-pick").addEventListener("click", () => document.getElementById("bg-file").click());
+document.getElementById("bg-file").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  state.cosmetics.background = await readFile(f);
+  bgImg = null;
+  save(); updateBgPreview(); toast("背景已更新");
+});
+document.getElementById("bg-clear").addEventListener("click", () => {
+  state.cosmetics.background = null; bgImg = null; save(); updateBgPreview();
+});
+function updateBgPreview() {
+  const el = document.getElementById("bg-preview");
+  el.style.backgroundImage = state.cosmetics.background ? `url(${state.cosmetics.background})` : "";
+}
+const CREATURE_KEYS = [
+  ["smallFish","小鱼"],["moonFish","月亮鱼"],["clownfish","小丑鱼"],["bigFish","大鱼"],["turtle","海龟"],
+  ["seaweed","海草"],["anemone","海葵"],["coral","珊瑚"]
+];
+function renderCreatureRows() {
+  const root = document.getElementById("creature-rows"); root.innerHTML = "";
+  for (const [k,label] of CREATURE_KEYS) {
+    const row = document.createElement("div"); row.className = "cos-row";
+    row.innerHTML = `
+      <label>${label}</label>
+      <input type="file" accept="image/*" style="display:none">
+      <button class="file-btn">选择</button>
+      <div class="cos-preview"></div>
+      <button class="clear">清除</button>
+    `;
+    const fileIn = row.querySelector("input[type=file]");
+    const pickBtn = row.querySelector(".file-btn");
+    const preview = row.querySelector(".cos-preview");
+    const clearBtn = row.querySelector(".clear");
+    function refreshPreview() {
+      preview.style.backgroundImage = state.cosmetics.creatures[k] ? `url(${state.cosmetics.creatures[k]})` : "";
+    }
+    refreshPreview();
+    pickBtn.addEventListener("click", () => fileIn.click());
+    fileIn.addEventListener("change", async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      state.cosmetics.creatures[k] = await readFile(f);
+      imgCache[k] = null;
+      save(); refreshPreview(); toast(label + " 已更新");
+    });
+    clearBtn.addEventListener("click", () => {
+      state.cosmetics.creatures[k] = null; imgCache[k] = null; save(); refreshPreview();
+    });
+    root.appendChild(row);
+  }
+}
+
+/* ============================================================
+   AQUARIUM ANIMATION
+   ============================================================ */
+const cv = document.getElementById("aq");
+const ctx = cv.getContext("2d");
+let W = 0, H = 0;
+let bgImg = null;
+const imgCache = {};
+
+function resizeCanvas() {
+  const rect = cv.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = rect.width * dpr; cv.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  W = rect.width; H = rect.height;
+  // Cache low-poly background polygons so they don't re-randomize per frame
+  if (!cv._lpBg || cv._lpBg.W !== W || cv._lpBg.H !== H) {
+    cv._lpBg = buildLowPolyBackground(W, H);
+  }
+}
+const creatures = [];
+const structures = [];
+const bubbles = [];
+function rand(a, b) { return a + Math.random()*(b-a); }
+function spawnCreature(type) {
+  if (type === "smallFish")  creatures.push(makeFish("smallFish",  rand(0,W), rand(H*0.2,H*0.8)));
+  if (type === "moonFish")   creatures.push(makeFish("moonFish",   rand(0,W), rand(H*0.2,H*0.8)));
+  if (type === "clownfish")  creatures.push(makeFish("clownfish",  rand(0,W), rand(H*0.4,H*0.85)));
+  if (type === "bigFish")    creatures.push(makeFish("bigFish",    rand(0,W), rand(H*0.3,H*0.7)));
+  if (type === "turtle")     creatures.push(makeTurtle(rand(0,W), rand(H*0.3,H*0.65)));
+  if (type === "seaweed")    structures.push(makeSeaweed(rand(W*0.05,W*0.95), H-4));
+  if (type === "anemone")    structures.push(makeAnemone(rand(W*0.1, W*0.9), H-6));
+  if (type === "coral")      structures.push(makeCoral(rand(W*0.08, W*0.92), H-6));
+}
+function removeCreatures(type, n) {
+  const arr = (["seaweed","anemone","coral"].includes(type)) ? structures : creatures;
+  for (let i = 0; i < n; i++) {
+    const idx = arr.findIndex(c => c.type === type);
+    if (idx >= 0) arr.splice(idx, 1);
+  }
+}
+function makeFish(type, x, y) {
+  let color, size, speed;
+  if (type === "smallFish") { color = "#f0c674"; size = 8;  speed = rand(0.20, 0.35); }
+  if (type === "moonFish")  { color = "#e7d9b0"; size = 16; speed = rand(0.10, 0.20); }
+  if (type === "clownfish") { color = "#e07a3c"; size = 12; speed = rand(0.13, 0.22); }
+  if (type === "bigFish")   { color = "#bb6abf"; size = 28; speed = rand(0.06, 0.12); }
+  return { type, x, y, size, color, vx: (Math.random()<0.5?-1:1)*speed, vy: rand(-0.05,0.05), phase: Math.random()*6, speed };
+}
+function makeTurtle(x, y) {
+  return { type: "turtle", x, y, size: 26, vx: (Math.random()<0.5?-1:1)*0.06, vy: rand(-0.02,0.02), phase: Math.random()*6 };
+}
+function makeSeaweed(x, baseY) { return { type:"seaweed", x, baseY, h: rand(40,80), seg: 8, phase: Math.random()*6, hue: rand(120,150) }; }
+function makeAnemone(x, baseY) { return { type:"anemone", x, baseY, r: rand(10,16), tentacles: 12, phase: Math.random()*6, hue: rand(330,360) }; }
+function makeCoral(x, baseY) {
+  const branches = [], n = 5 + Math.floor(Math.random()*4);
+  for (let i = 0; i < n; i++) branches.push({ angle: rand(-Math.PI/2-0.6,-Math.PI/2+0.6), len: rand(18,32), w: rand(3,6) });
+  return { type:"coral", x, baseY, branches, hue: rand(0,30) };
+}
+
+function getImage(type) {
+  const url = state.cosmetics.creatures[type]; if (!url) return null;
+  if (imgCache[type] && imgCache[type].src === url) return imgCache[type].img;
+  const img = new Image(); img.src = url; imgCache[type] = { src: url, img };
+  return img;
+}
+function getBgImage() {
+  const url = state.cosmetics.background; if (!url) return null;
+  if (bgImg && bgImg.src === url) return bgImg;
+  bgImg = new Image(); bgImg.src = url;
+  return bgImg;
+}
+
+/* ----- Low-poly background ----- */
+function buildLowPolyBackground(W, H) {
+  // Water layers (top to bottom)
+  const layers = [
+    { y: 0,         color: "#1d5b88" },  // sky-water
+    { y: H * 0.25,  color: "#174e7a" },
+    { y: H * 0.45,  color: "#103c61" },
+    { y: H * 0.65,  color: "#0a2d4b" },
+    { y: H * 0.82,  color: "#072138" }
+  ];
+  // Sand zigzag
+  const sandTopY = H * 0.86;
+  const sandPeaks = [];
+  const cols = 14;
+  for (let i = 0; i <= cols; i++) {
+    sandPeaks.push({
+      x: (W * i) / cols,
+      y: sandTopY + (Math.sin(i * 1.7) * 0.5 + Math.cos(i * 0.7) * 0.5) * 14
+    });
+  }
+  // Distant rocks (triangles)
+  const rocks = [];
+  const rockCount = 5;
+  for (let i = 0; i < rockCount; i++) {
+    const cx = W * (0.1 + 0.18 * i + (i % 2) * 0.04);
+    const base = H * 0.87 + (i % 2) * 4;
+    const w = 30 + (i * 13) % 24;
+    const h = 22 + (i * 7) % 18;
+    rocks.push({
+      pts: [[cx - w/2, base], [cx, base - h], [cx + w/2, base]],
+      color: i % 2 ? "#2a3b4f" : "#23354a"
+    });
+  }
+  // Light beams (faceted triangles)
+  const beams = [];
+  for (let i = 0; i < 3; i++) {
+    const cx = W * (0.2 + i * 0.3);
+    beams.push({
+      pts: [[cx - 30, 0], [cx + 30, 0], [cx + 90, H * 0.75], [cx - 90, H * 0.75]],
+      color: "rgba(248,232,176,0.06)"
+    });
+  }
+  return { layers, sandPeaks, rocks, beams };
+}
+
+function drawLowPolyBackground(t) {
+  const bg = cv._lpBg || buildLowPolyBackground(W, H);
+  // Layers
+  for (let i = 0; i < bg.layers.length; i++) {
+    const top = bg.layers[i].y;
+    const bottom = (bg.layers[i+1] ? bg.layers[i+1].y : H);
+    ctx.fillStyle = bg.layers[i].color;
+    ctx.fillRect(0, Math.round(top), W, Math.ceil(bottom - top) + 1);
+  }
+  // Light beams (slow shimmer via t)
+  const shim = (Math.sin(t * 0.0002) + 1) * 0.5;
+  for (const beam of bg.beams) {
+    ctx.fillStyle = beam.color;
+    ctx.beginPath();
+    ctx.moveTo(beam.pts[0][0], beam.pts[0][1]);
+    for (let i = 1; i < beam.pts.length; i++) ctx.lineTo(beam.pts[i][0], beam.pts[i][1]);
+    ctx.closePath(); ctx.fill();
+  }
+  // Distant rocks
+  for (const rock of bg.rocks) {
+    ctx.fillStyle = rock.color;
+    ctx.beginPath();
+    ctx.moveTo(rock.pts[0][0], rock.pts[0][1]);
+    for (let i = 1; i < rock.pts.length; i++) ctx.lineTo(rock.pts[i][0], rock.pts[i][1]);
+    ctx.closePath(); ctx.fill();
+  }
+  // Sand (zigzag polygon along bottom)
+  ctx.fillStyle = "#c8a874";
+  ctx.beginPath();
+  ctx.moveTo(0, H);
+  for (const p of bg.sandPeaks) ctx.lineTo(p.x, p.y);
+  ctx.lineTo(W, H);
+  ctx.closePath(); ctx.fill();
+  // Sand shadow facets (slightly darker between peaks)
+  ctx.fillStyle = "#a88857";
+  for (let i = 0; i < bg.sandPeaks.length - 1; i += 2) {
+    const a = bg.sandPeaks[i], b = bg.sandPeaks[i + 1];
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.lineTo((a.x + b.x) / 2, H);
+    ctx.closePath(); ctx.fill();
+  }
+}
+
+function drawBackground(t) {
+  const bgi = getBgImage();
+  if (bgi && bgi.complete && bgi.naturalWidth > 0) {
+    const ir = bgi.naturalWidth / bgi.naturalHeight, cr = W / H;
+    let dw, dh, dx, dy;
+    if (ir > cr) { dh = H; dw = H * ir; dx = (W - dw)/2; dy = 0; }
+    else         { dw = W; dh = W / ir; dx = 0; dy = (H - dh)/2; }
+    ctx.drawImage(bgi, dx, dy, dw, dh);
+    ctx.fillStyle = "rgba(11,37,64,0.18)";
+    ctx.fillRect(0, 0, W, H);
+  } else {
+    drawLowPolyBackground(t);
+  }
+}
+
+/* ----- Pixel sprites (2-frame loops) ----- */
+const SPRITES = {
+  smallFish: {
+    px: 2,
+    palette: { A: "#e9b955", B: "#a17a37", H: "#f7d690", E: "#1a1410" },
+    frames: [
+      ["....AAAA..", "BAAAAAAA.E", ".AAAAAAA.E", "BAAAAAAA..", "....AAAA.."],
+      ["....AAAA..", ".AAAAAAA.E", "BAAAAAAA.E", ".AAAAAAA..", "....AAAA.."]
+    ]
+  },
+  moonFish: {
+    px: 3,
+    palette: { M: "#e7d9b0", N: "#a99b76", H: "#f5ebc6", E: "#1a1410" },
+    frames: [
+      [
+        "...MMM...",
+        "..MMMMM..",
+        ".MMMMMMM.",
+        "NMMMMMMMM",
+        "NMMMMMMME",
+        "NMMMMMMM.",
+        ".MMMMMMM.",
+        "..MMMMM..",
+        "...MMM..."
+      ],
+      [
+        "...MMM...",
+        "..MMMMM..",
+        "NMMMMMMM.",
+        "NMMMMMMMM",
+        ".MMMMMMME",
+        ".MMMMMMM.",
+        ".MMMMMMM.",
+        "..MMMMM..",
+        "...MMM..."
+      ]
+    ]
+  },
+  clownfish: {
+    px: 3,
+    palette: { O: "#e07a3c", W: "#fff5dd", B: "#8e3f17", E: "#1a1410" },
+    frames: [
+      ["....OOOO..", "BOWOOWOOOE", ".OWOOWOOOE", "BOWOOWOOO.", "....OOOO.."],
+      ["....OOOO..", ".OWOOWOOOE", "BOWOOWOOOE", ".OWOOWOOO.", "....OOOO.."]
+    ]
+  },
+  bigFish: {
+    px: 4,
+    palette: { P: "#bb6abf", Q: "#7e468a", H: "#d59cdb", E: "#1a1410" },
+    frames: [
+      [
+        ".....PPPPPPP...",
+        "...PPPPPPPPPP..",
+        "..QPPPPPPPPPPP.",
+        ".QPPPPPPPPPPPE.",
+        "QPPPPPPPPPPPPEE",
+        "QPPPPPPPPPPPPE.",
+        "..QPPPPPPPPPPP.",
+        "...QPPPPPPPPP..",
+        "....PPPPPPPP...",
+        "......PPPPP...."
+      ],
+      [
+        ".....PPPPPPP...",
+        "..QPPPPPPPPP...",
+        ".QPPPPPPPPPPP..",
+        "QPPPPPPPPPPPPE.",
+        ".QPPPPPPPPPPPEE",
+        "QPPPPPPPPPPPPE.",
+        ".QPPPPPPPPPPPP.",
+        "..QPPPPPPPPPP..",
+        "....PPPPPPPP...",
+        "......PPPPP...."
+      ]
+    ]
+  },
+  turtle: {
+    px: 4,
+    palette: { S: "#3a6b48", T: "#234d2d", H: "#5a8a5e", E: "#1a1410", F: "#3a6b48" },
+    frames: [
+      [
+        "....SSSSSSS...",
+        "..SSTSSSTSSS..",
+        ".SSSSSSSSSSSH.",
+        "SSSTSSSSTSSHHH",
+        "SSSSSSSSSSSHEE",
+        "SSSTSSSSTSSHHH",
+        ".SSSSSSSSSSSH.",
+        "..SSSSSSSSS...",
+        "FFF........FFF",
+        "F.............F"
+      ],
+      [
+        "....SSSSSSS...",
+        "..SSTSSSTSSS..",
+        ".SSSSSSSSSSSH.",
+        "SSSTSSSSTSSHHH",
+        "SSSSSSSSSSSHEE",
+        "SSSTSSSSTSSHHH",
+        ".SSSSSSSSSSSH.",
+        "..SSSSSSSSS...",
+        ".F.........F..",
+        "FF.........FF."
+      ]
+    ]
+  }
+};
+
+function drawSprite(type, x, y, dir, t) {
+  const sp = SPRITES[type];
+  if (!sp) return false;
+  const frame = sp.frames[Math.floor(t * 0.0025) % sp.frames.length];
+  const rows = frame.length, cols = frame[0].length;
+  const px = sp.px;
+  const w = cols * px, h = rows * px;
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.translate(Math.round(x), Math.round(y));
+  if (dir < 0) ctx.scale(-1, 1);
+  const ox = -Math.round(w / 2), oy = -Math.round(h / 2);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const k = frame[r][c];
+      if (k === ".") continue;
+      const col = sp.palette[k];
+      if (!col) continue;
+      ctx.fillStyle = col;
+      ctx.fillRect(ox + c * px, oy + r * px, px, px);
+    }
+  }
+  ctx.restore();
+  return true;
+}
+
+function drawFishProcedural(f, t) {
+  ctx.save();
+  ctx.translate(f.x, f.y);
+  const dir = f.vx >= 0 ? 1 : -1; ctx.scale(dir, 1);
+  const wag = Math.sin(t*0.005 + f.phase) * (f.type === "bigFish" ? 0.08 : 0.18);
+  ctx.fillStyle = f.color;
+  ctx.beginPath(); ctx.ellipse(0, 0, f.size, f.size*0.55, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  ctx.beginPath(); ctx.ellipse(2, 2, f.size*0.7, f.size*0.32, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = f.color;
+  ctx.beginPath();
+  ctx.moveTo(-f.size, 0); ctx.lineTo(-f.size*1.8, -f.size*0.6 + wag*f.size); ctx.lineTo(-f.size*1.8, f.size*0.6 + wag*f.size);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#1a1410";
+  ctx.beginPath(); ctx.arc(f.size*0.55, -f.size*0.1, Math.max(1.2, f.size*0.08), 0, Math.PI*2); ctx.fill();
+  if (f.type === "clownfish") {
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.beginPath(); ctx.ellipse(0, 0, f.size*0.18, f.size*0.55, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(f.size*0.5, 0, f.size*0.12, f.size*0.45, 0, 0, Math.PI*2); ctx.fill();
+  }
+  if (f.type === "bigFish") {
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.beginPath();
+    ctx.moveTo(-f.size*0.4, -f.size*0.55); ctx.lineTo(-f.size*0.1, -f.size*1.0); ctx.lineTo(f.size*0.2, -f.size*0.55);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+function drawFishImage(f, img) {
+  ctx.save();
+  ctx.translate(f.x, f.y);
+  const dir = f.vx >= 0 ? 1 : -1; ctx.scale(dir, 1);
+  const targetW = f.size * 3.2;
+  const ratio = img.naturalHeight / img.naturalWidth;
+  const w = targetW, h = targetW * ratio;
+  ctx.drawImage(img, -w/2, -h/2, w, h);
+  ctx.restore();
+}
+function drawFish(f, t) {
+  const img = getImage(f.type);
+  if (img && img.complete && img.naturalWidth > 0) { drawFishImage(f, img); return; }
+  const dir = f.vx >= 0 ? 1 : -1;
+  if (!drawSprite(f.type, f.x, f.y, dir, t)) drawFishProcedural(f, t);
+}
+function drawTurtleProcedural(t_obj, t) {
+  ctx.save();
+  ctx.translate(t_obj.x, t_obj.y);
+  const dir = t_obj.vx >= 0 ? 1 : -1; ctx.scale(dir, 1);
+  ctx.fillStyle = "#3a6b48";
+  ctx.beginPath(); ctx.ellipse(0, 0, t_obj.size, t_obj.size*0.62, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#2c5235";
+  for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(-t_obj.size*0.5 + i*t_obj.size*0.25, 0, t_obj.size*0.12, 0, Math.PI*2); ctx.fill(); }
+  ctx.fillStyle = "#5a8a5e";
+  ctx.beginPath(); ctx.ellipse(t_obj.size*0.9, -t_obj.size*0.1, t_obj.size*0.32, t_obj.size*0.25, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#1a1410";
+  ctx.beginPath(); ctx.arc(t_obj.size*1.05, -t_obj.size*0.15, 1.6, 0, Math.PI*2); ctx.fill();
+  const flap = Math.sin(t*0.004 + t_obj.phase) * 0.4;
+  ctx.fillStyle = "#5a8a5e";
+  ctx.beginPath(); ctx.ellipse(t_obj.size*0.3, t_obj.size*0.5, t_obj.size*0.45, t_obj.size*0.18, 0.4 + flap, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-t_obj.size*0.3, t_obj.size*0.5, t_obj.size*0.4, t_obj.size*0.18, -0.4 - flap, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function drawTurtle(t_obj, t) {
+  const img = getImage("turtle");
+  if (img && img.complete && img.naturalWidth > 0) { drawFishImage(t_obj, img); return; }
+  const dir = t_obj.vx >= 0 ? 1 : -1;
+  if (!drawSprite("turtle", t_obj.x, t_obj.y, dir, t)) drawTurtleProcedural(t_obj, t);
+}
+function drawSeaweedProcedural(s, t) {
+  ctx.save();
+  ctx.strokeStyle = `hsl(${s.hue}, 50%, 35%)`; ctx.lineWidth = 3; ctx.lineCap = "round";
+  ctx.beginPath();
+  let x = s.x, y = s.baseY;
+  ctx.moveTo(x, y);
+  for (let i = 1; i <= s.seg; i++) {
+    const yy = s.baseY - (s.h * i / s.seg);
+    const sway = Math.sin(t*0.002 + s.phase + i*0.3) * (i*1.5);
+    ctx.lineTo(x + sway, yy);
+  }
+  ctx.stroke(); ctx.restore();
+}
+function drawAnemoneProcedural(a, t) {
+  ctx.save();
+  ctx.fillStyle = `hsl(${a.hue}, 40%, 35%)`;
+  ctx.beginPath(); ctx.ellipse(a.x, a.baseY, a.r*0.9, a.r*0.4, 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = `hsl(${a.hue}, 65%, 65%)`; ctx.lineWidth = 2; ctx.lineCap = "round";
+  for (let i = 0; i < a.tentacles; i++) {
+    const ang = (i / a.tentacles) * Math.PI - Math.PI;
+    const sway = Math.sin(t*0.003 + a.phase + i) * 4;
+    const tx = a.x + Math.cos(ang) * a.r * 0.6;
+    const ty = a.baseY + Math.sin(ang) * a.r * 0.2;
+    ctx.beginPath(); ctx.moveTo(tx, ty);
+    ctx.quadraticCurveTo(tx + sway, ty - a.r*0.8, tx + sway*1.5, ty - a.r*1.5);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawCoralProcedural(c, t) {
+  ctx.save();
+  for (const b of c.branches) {
+    ctx.strokeStyle = `hsl(${c.hue}, 55%, 55%)`; ctx.lineWidth = b.w; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(c.x, c.baseY);
+    const ex = c.x + Math.cos(b.angle) * b.len;
+    const ey = c.baseY + Math.sin(b.angle) * b.len;
+    ctx.quadraticCurveTo(c.x + Math.cos(b.angle)*b.len*0.4, c.baseY + Math.sin(b.angle)*b.len*0.7, ex, ey);
+    ctx.stroke();
+    ctx.fillStyle = `hsl(${c.hue}, 70%, 70%)`;
+    ctx.beginPath(); ctx.arc(ex, ey, b.w*0.8, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+function drawStructureImage(s, img) {
+  const ratio = img.naturalHeight / img.naturalWidth;
+  const w = (s.type === "seaweed" ? 36 : 56), h = w * ratio;
+  ctx.drawImage(img, s.x - w/2, s.baseY - h, w, h);
+}
+function drawStructure(s, t) {
+  const img = getImage(s.type);
+  if (img && img.complete && img.naturalWidth > 0) drawStructureImage(s, img);
+  else if (s.type === "seaweed") drawSeaweedProcedural(s, t);
+  else if (s.type === "anemone") drawAnemoneProcedural(s, t);
+  else if (s.type === "coral")   drawCoralProcedural(s, t);
+}
+function drawBubbles(t) {
+  for (const b of bubbles) {
+    b.y -= b.speed; b.x += Math.sin(b.y * 0.04 + b.phase) * 0.3;
+    ctx.beginPath(); ctx.strokeStyle = "rgba(255,255,255,0.45)"; ctx.lineWidth = 1;
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.stroke();
+    if (b.y < -10) { b.y = H + 10; b.x = rand(0, W); }
+  }
+}
+function updateFish(f) {
+  if (f.type === "smallFish") {
+    let cx=0,cy=0,cn=0,vx=0,vy=0;
+    for (const o of creatures) {
+      if (o === f || o.type !== "smallFish") continue;
+      const dx = o.x - f.x, dy = o.y - f.y, d = Math.hypot(dx,dy);
+      if (d < 80) { cx+=o.x; cy+=o.y; cn++; vx+=o.vx; vy+=o.vy; }
+      if (d < 18 && d > 0) { f.vx -= dx/d*0.02; f.vy -= dy/d*0.02; }
+    }
+    if (cn) {
+      f.vx += (cx/cn - f.x) * 0.0008; f.vy += (cy/cn - f.y) * 0.0008;
+      f.vx += (vx/cn - f.vx) * 0.02; f.vy += (vy/cn - f.vy) * 0.02;
+    }
+  }
+  if (f.type === "clownfish") {
+    let target=null, td=1e9;
+    for (const s of structures) {
+      if (s.type !== "anemone") continue;
+      const d = Math.hypot(s.x - f.x, (s.baseY - 20) - f.y);
+      if (d < td) { td = d; target = s; }
+    }
+    if (target) {
+      f.vx += (target.x - f.x) * 0.0004;
+      f.vy += ((target.baseY - 20) - f.y) * 0.0004;
+      if (td < 30) {
+        f.vx *= 0.85; f.vy *= 0.85;
+        f.vx += Math.cos(performance.now()*0.003 + f.phase)*0.05;
+        f.vy += Math.sin(performance.now()*0.003 + f.phase)*0.05;
+      }
+    }
+  }
+  if (f.type === "bigFish" || f.type === "moonFish") {
+    f.vy += Math.sin(performance.now()*0.0015 + f.phase) * 0.005;
+  }
+  const sp = Math.hypot(f.vx, f.vy), cap = f.speed * 1.5;
+  if (sp > cap) { f.vx = f.vx/sp*cap; f.vy = f.vy/sp*cap; }
+  if (sp < f.speed * 0.4) {
+    if (sp > 0) { f.vx = f.vx/sp * f.speed * 0.5; f.vy = f.vy/sp * f.speed * 0.5; }
+    else f.vx = f.speed * (Math.random()<0.5?-1:1);
+  }
+  f.x += f.vx; f.y += f.vy;
+  if (f.x < -f.size*2) f.x = W + f.size*2;
+  if (f.x > W + f.size*2) f.x = -f.size*2;
+  if (f.y < 20) { f.y = 20; f.vy = Math.abs(f.vy); }
+  if (f.y > H - 24) { f.y = H - 24; f.vy = -Math.abs(f.vy); }
+}
+function updateTurtle(t_obj) {
+  t_obj.vy += Math.sin(performance.now()*0.0008 + t_obj.phase) * 0.003;
+  t_obj.x += t_obj.vx; t_obj.y += t_obj.vy;
+  if (t_obj.x < -60) t_obj.x = W + 60;
+  if (t_obj.x > W + 60) t_obj.x = -60;
+  if (t_obj.y < 30) { t_obj.y = 30; t_obj.vy = Math.abs(t_obj.vy); }
+  if (t_obj.y > H - 40) { t_obj.y = H - 40; t_obj.vy = -Math.abs(t_obj.vy); }
+}
+function frame(t) {
+  if (W === 0) resizeCanvas();
+  ctx.clearRect(0, 0, W, H);
+  drawBackground(t);
+  for (const s of structures) drawStructure(s, t);
+  for (const c of creatures) {
+    if (c.type === "turtle") { updateTurtle(c); drawTurtle(c, t); }
+    else { updateFish(c); drawFish(c, t); }
+  }
+  drawBubbles(t);
+  requestAnimationFrame(frame);
+}
+function seedInitialPopulation() {
+  for (let i = 0; i < state.inv.smallFish; i++) spawnCreature("smallFish");
+  for (let i = 0; i < state.inv.moonFish;  i++) spawnCreature("moonFish");
+  for (let i = 0; i < state.inv.clownfish; i++) spawnCreature("clownfish");
+  for (let i = 0; i < state.inv.bigFish;   i++) spawnCreature("bigFish");
+  for (let i = 0; i < state.inv.turtle;    i++) spawnCreature("turtle");
+  for (let i = 0; i < state.inv.seaweed;   i++) spawnCreature("seaweed");
+  for (let i = 0; i < state.inv.anemone;   i++) spawnCreature("anemone");
+  for (let i = 0; i < state.inv.coral;     i++) spawnCreature("coral");
+  for (let i = 0; i < 20; i++)
+    bubbles.push({ x: rand(0,W), y: rand(0,H), r: rand(1,3), speed: rand(0.08, 0.22), phase: rand(0,6) });
+}
+
+/* ---------- Boot ---------- */
+window.addEventListener("resize", resizeCanvas);
+new ResizeObserver(() => resizeCanvas()).observe(cv);
+
+resizeCanvas();
+seedInitialPopulation();
+renderLearn();
+updateTopStats();
+renderInventory();
+renderMedals();
+renderVocabList();
+renderCreatureRows();
+updateBgPreview();
+updatePomDisplay();
+renderCloudPanel();
+requestAnimationFrame(frame);
+
+setTimeout(bootCloudSync, 800);
+</script>
+</body>
+</html>
