@@ -8,3 +8,6 @@ dist/
 
 # TS build info
 *.tsbuildinfo
+
+# Packaged release artifacts (e.g. itch.io upload zip)
+*.zip
