@@ -6,6 +6,7 @@ import { clone as skeletonClone } from "three/examples/jsm/utils/SkeletonUtils.j
 import type { Inventory, DecorItem, DecorType } from "../../types";
 import { DECOR_VARIANT_COUNTS } from "../../types";
 import { getModel, getHeading, getPitch, hasModel, BUNDLED_MODELS, bundledModelUrl, decorVariantUrl, type ModelSlot } from "./modelStore";
+import { IS_RELEASE } from "../../lib/release";
 
 type ModelTemplate = { object: THREE.Object3D; animations: THREE.AnimationClip[] };
 export type Spoken = { en: string; zh: string; word?: string };
@@ -297,8 +298,13 @@ export class Aquarium3D {
   }
 
   async refreshModel(slot: ModelSlot, rebuild = true) {
-    // Player upload wins; otherwise fall back to a bundled default if one ships.
-    const url = (await getModel(slot)) || bundledModelUrl(slot);
+    // Release builds always show the shipped (bundled) model where one exists, so
+    // a standalone copy never surfaces the developer's cloud-synced uploads. Slots
+    // with no bundled model still honor a player's own local upload.
+    // Dev builds keep upload-wins so testing custom models is frictionless.
+    const url = IS_RELEASE
+      ? (bundledModelUrl(slot) || (await getModel(slot)))
+      : ((await getModel(slot)) || bundledModelUrl(slot));
     if (!url) {
       delete this.models[slot];
     } else {
